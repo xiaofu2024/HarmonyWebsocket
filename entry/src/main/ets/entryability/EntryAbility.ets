@@ -24,8 +24,6 @@ export default class EntryAbility extends UIAbility {
       hilog.info(0x0000, 'testTag', 'Succeeded in loading the content.');
     });
 
-    let chat = new Chatlib();
-    chat.connectWebSocket();
 
   }
 
