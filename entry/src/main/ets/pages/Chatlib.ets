@@ -10,6 +10,8 @@ export class Chatlib {
    let defaultIpAddress = "wss://echo.websocket.org"
     let ws = webSocket.createWebSocket()
 
+    let d =
+
     // Handle the open connection event
     ws.on('open', (err: BusinessError, value: Object) => {
       if (err) {

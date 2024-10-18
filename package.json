@@ -2,5 +2,8 @@
   "dependencies": {
     "@protobuf-ts/plugin": "^2.9.4",
     "google-protobuf": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/google-protobuf": "^3.15.12"
   }
 }
