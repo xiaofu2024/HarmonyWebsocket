@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "protots": "protoc -t static-module -w es6 -o src/main/proto.js proto/*.proto\npbts -o src/main/proto.d.ts src/main/proto.js"
+  }
+}
+

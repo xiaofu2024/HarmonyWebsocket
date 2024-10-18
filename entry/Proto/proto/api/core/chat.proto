@@ -1,0 +1,299 @@
+syntax = "proto3";
+package api.core;
+
+option go_package = "wcs/api/core;core";
+option java_package = "com.teneasyChat.api.core";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+import "api/option.proto";
+import "api/common/c_worker.proto";
+import "api/common/c_message.proto";
+import "api/common/c_chat.proto";
+import "api/core/front.proto";
+import "api/common/c_base.proto";
+
+option(api.info) = {
+  authors: ["jeff"],
+  date: "2023-01-02",
+};
+
+//分页结构体
+message  Pagination  {
+  int32 page = 1;    //当前页码
+  int32 pagesize = 2;    //分页大小
+}
+
+
+// 聊天会话列表
+message ChatListQueryRequest {
+  int32 worker_id = 1;
+}
+
+// 聊天会话列表
+message ChatListQueryPageRequest {
+  Pagination page = 1;
+  int32 worker_id = 2;
+}
+
+// 历史聊天会话列表
+message HistoryClientSessionsRequest {
+  int32 worker_id = 1;
+  //开始查询时间
+  google.protobuf.Timestamp start_time = 2;
+  //结束
+  google.protobuf.Timestamp end_time = 3;
+  // 咨询id
+  uint32 consult_id = 5;
+  // 用户id
+  int32 owner_id = 6;
+  // 用户昵称
+  string nickname = 7;
+  // 分页大小
+  int32 page_size = 8;
+  // 分页/最后时间
+  int64 last_created_at = 9;
+}
+
+message HistoryClientSessionsResponse {
+  repeated common.ChatItem chat_sessions = 1;
+  // 分页/最后时间
+  int64 last_created_at = 2;
+}
+
+// 首页聊天会话列表
+message IndexClientSessionsRequest {
+  //开始查询时间
+  google.protobuf.Timestamp start_time = 1;
+  //结束
+  google.protobuf.Timestamp end_time = 2;
+  // 页数
+  uint32 page = 3;
+  // 每页大小
+  uint32 pageSize = 4;
+}
+
+message IndexClientSessionsResponse {
+  repeated common.ChatItem chat_sessions = 1;
+  int64 total = 2;
+}
+
+message ChatListQueryResponse {
+
+  repeated common.ChatItem chats = 1;
+}
+
+
+message ChatListQueryPageResponse {
+  int32 total = 1;     //总量
+  repeated common.ChatItem chats = 2;
+}
+
+
+// 标记已读
+message ChatMarkReadRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  // 咨询类型
+  int64 consult_id = 2;
+  // 消息ID
+  string msg_id = 3;
+}
+
+message OrphanResponse {
+  int32 worker_id = 1;
+  string nick = 2;
+  string avatar = 3;
+}
+
+message MarkRepliedRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  // 咨询类型
+  int64 consult_id = 2;
+}
+
+message ChatListQueryUserRequest {
+  int32 user_id = 1;
+  int32 register_type = 2 ;
+}
+
+message OrphanReq{
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  // 咨询类型
+  int64 consult_id = 2;
+}
+
+message GetChatSessionStateRequest {
+  // 商户ID
+  int32 tenant_id = 1;
+  // 咨询类型
+  int64 consult_id = 2;
+  // 用户id
+  int32 owner_id = 3;
+  int32 owner_role = 4;
+  // 会话ID
+  int64 chat_id = 5;
+}
+
+message GetChatSessionStateResponse {
+  // 商户ID
+  int32 tenant_id = 1;
+  // 咨询类型
+  int64 consult_id = 2;
+  // 用户id
+  int32 owner_id = 3;
+  // 用户角色
+  int32 owner_role = 4;
+  // 多少秒前分配任务
+  int64 assign_time = 6;
+  // 会话多少秒前开始
+  int64 session_start_time = 7;
+  // 客户多少秒前发言
+  int64 client_message_time = 8;
+  // 客户多少秒前第一次发言
+  int64 client_first_time = 31;
+  // 客服id
+  int32 worker_id = 9;
+  // 客服多少秒前是否在线
+  int64 worker_ping_time = 10;
+  // 客服多少秒前第一次发言
+  int64 worker_first_time = 32;
+  // 客服多少秒前发言
+  int64 worker_message_time = 11;
+  // 咨询类型
+  int64 worker_consult_id = 13;
+  // 多少秒前转入任务
+  int64 in_time = 14;
+  // 多少秒前转出任务
+  int64 out_time = 15;
+  // 多少秒前最后活动
+  int64 last_time = 35;
+  // 是否已超时
+  int32 timeout = 16;
+  // 是否已超时
+  int32 wait_response = 56;
+  // 是否已超时
+  int32 is_process = 57;
+  // 是否已超时
+  int32 is_receive = 58;
+  // 是转入
+  int32 is_in = 59;
+  // 是否转出
+  int32 is_out = 60;
+  // 是否可见
+  int32 visible = 17;
+  // 客户状态
+  api.common.ChatState state = 20;
+  // 客服状态
+  api.common.WorkerState worker_state = 21;
+}
+
+service Chat {
+  option (api.service) = {
+    path: "/tenant/chat",
+    tags: ["chat"],
+    auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+  };
+
+  // 查询聊天会话列表
+  rpc Query(ChatListQueryRequest) returns (ChatListQueryResponse) {
+    option (api.method) = {
+      id: 1000,
+      path: "query",
+      ready: true,
+      date: "2023-01-02"
+    };
+  }
+
+  rpc QueryByUserId(ChatListQueryUserRequest) returns (ChatListQueryResponse){
+    option (api.method) = {
+      id: 1007,
+      path: "query-user",
+      ready: true,
+      date: "2024-04-15"
+    };
+  }
+
+  // 标记已读
+  rpc MarkRead(ChatMarkReadRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 1001,
+      path: "mark-read",
+      ready: true,
+      date: "2023-01-02",
+    };
+  }
+
+  // 孤儿处理(找不到分配客服)
+  rpc Orphan(OrphanReq) returns (OrphanResponse) {
+    option (api.method) = {
+      id: 1002,
+      path: "orphan",
+      auth: [AUTH_ROLE_SERVICE],
+      ready: true,
+      date: "2023-01-17"
+    };
+  }
+
+  // 转移会话为 **已接待**
+  rpc MarkReplied(MarkRepliedRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 1003,
+      path: "mark-replied",
+      auth: [AUTH_ROLE_SERVICE],
+      ready: true,
+      date: "2023-02-03"
+    };
+  }
+
+  // 老用户重置会话状态
+  rpc ResetChatState(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 1004,
+      path: "reset-chat-state",
+      ready: true,
+      auth: [AUTH_ROLE_SERVICE],
+      date: "2023-02-15"
+    };
+  }
+
+  // 查询聊天会话列表分页函数
+  rpc PageQuery(ChatListQueryPageRequest) returns (ChatListQueryPageResponse) {
+    option (api.method) = {
+      id: 1005,
+      path: "pagequery",
+      ready: true,
+      date: "2023-04-11"
+    };
+  }
+
+  // 查询聊天会话列表
+  rpc HistoryClientSessions(HistoryClientSessionsRequest) returns (HistoryClientSessionsResponse) {
+    option (api.method) = {
+      id: 1006,
+      path: "history-client-sessions",
+      auth: [AUTH_ROLE_TENANT],
+      ready: true,
+      date: "2023-01-02"
+    };
+  }
+
+  // 查询首页聊天会话列表
+  rpc IndexClientSessions(IndexClientSessionsRequest) returns (IndexClientSessionsResponse) {
+    option (api.method) = {
+      id: 1007,
+      path: "index-client-sessions",
+      ready: true,
+      date: "2023-01-02"
+    };
+  }
+
+  rpc GetChatSessionState(GetChatSessionStateRequest) returns (GetChatSessionStateResponse) {
+    option (api.method) = {
+      id: 1008,
+      path: "/debug/session",
+      auth: [AUTH_ROLE_DEVICE],
+      ready: true,
+      date: "2024-05-23"
+    };
+  }
+}

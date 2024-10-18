@@ -1,0 +1,186 @@
+syntax = "proto3";
+package api.core;
+
+option go_package = "wcs/api/core;core";
+option java_package = "com.teneasyChat.api.core";
+import "api/option.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+import "api/common/c_entrance.proto";
+
+option(api.info) = {
+  authors: ["calvin"],
+  date: "2022-12-15",
+};
+
+message GatewayNodeRequest {
+  // 网关节点id
+  int32 gateway_id = 1;
+}
+
+message GatewayRegisterRequest {
+  // 网关节点id
+  int32 gateway_id = 1[(validate.rules).int32 = {gt:0, lte:1023}];
+  // 客户端来源
+  common.ClientType client_type = 2;
+}
+
+message GatewayRegisterResponse {
+  // 链接id
+  uint64 websocket_id = 1;
+  // 链接创建时间
+  int64  websocket_time = 2;
+  // 链接标记
+  bool   websocket_flag = 3;
+  // 上次链接id
+  uint64  last_socket_id = 4;
+  // 上次链接时间
+  int64 last_socket_time = 5;
+}
+
+message OnlineTenantWorkers {
+  // 商户id
+  int32 tenant = 1;
+  // 客服id
+  repeated int32 workers = 2;
+}
+
+message GatewayBeaconRequest {
+  // 网关节点id
+  int32 gateway_id = 1;
+  // 心跳间隔时间
+  int32 duration = 2;
+  // 根据客服心跳汇总的在线客服, 按商户分组
+  repeated OnlineTenantWorkers tenants = 3;
+}
+
+message GatewayTeardownRequest {
+  // 网关节点id
+  int32 gateway_id = 1;
+  // 网关离线
+  bool gateway_offline = 2;
+  // 链接时间
+  int64 websocket_time = 3;
+}
+
+message NewWorkerConnectRequest {
+  int32 gateway_id = 1;
+  string query = 2;
+  string ip = 3;
+}
+
+message NewWorkerConnectResponse {
+  int64   client_id = 1;
+  string  token = 2;
+  uint64  websocket_id = 3;
+  int64   websocket_time = 4;
+  bool    websocket_flag = 5;
+  int64   chat_expire_time = 6;
+}
+
+message NewUserConnectRequest {
+  int32 gateway_id = 1;
+  string query = 2;
+  string ip = 3;
+}
+
+message NewUserConnectResponse {
+  int64   client_id = 1;
+  string  token = 2;
+  int32   worker_id = 3;
+  uint64  websocket_id = 4;
+  int64   websocket_time = 5;
+  bool    websocket_flag = 6;
+  int64   chat_expire_time = 7;
+}
+
+message NewDisconnectRequest {
+  repeated int64 client_id = 1;
+}
+
+service GatewayManager {
+  option (api.service) = {
+    path: "/gateway",
+    tags: ["gateway"],
+    auth: [AUTH_ROLE_SERVICE],
+  };
+
+  // 网关心跳
+  rpc Beacon(GatewayBeaconRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 800,
+      path: "beacon"
+    };
+  }
+
+  // 链接注册
+  rpc Register(GatewayRegisterRequest) returns (GatewayRegisterResponse) {
+    option (api.method) = {
+      id: 801,
+      path: "register"
+    };
+  }
+
+  // 链接下线
+  rpc Teardown(GatewayTeardownRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 802,
+      path: "teardown"
+    };
+  }
+
+  // PubSub 请求同步确认
+  rpc PubSubSYN(GatewayNodeRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 803,
+      path: "syn"
+    };
+  }
+
+  // PubSub 确认
+  rpc PubSubACK(GatewayNodeRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 804,
+      path: "ack"
+    };
+  }
+
+  // 新客服连接
+  rpc NewWorkerConnect(NewWorkerConnectRequest) returns (NewWorkerConnectResponse) {
+    option (api.method) = {
+      id: 805,
+      path: "new-worker-conn"
+    };
+  }
+
+  // 新终端用户连接
+  rpc NewUserConnect(NewUserConnectRequest) returns (NewUserConnectResponse) {
+    option (api.method) = {
+      id: 806,
+      path: "new-user-conn"
+    };
+  }
+
+  // 处理新终端用户连接
+  rpc NewUserConnectV2(NewUserConnectRequest) returns (NewUserConnectResponse) {
+    option (api.method) = {
+      id: 806,
+      path: "new-user-connV2"
+    };
+  }
+
+  rpc NewDisconnect(NewDisconnectRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 807,
+      path: "new-disconnect"
+    };
+  }
+
+  rpc WsLogOut(google.protobuf.Empty) returns (google.protobuf.Empty){
+    option (api.method) = {
+      id: 807,
+      path: "ws-logout"
+    };
+  }
+}

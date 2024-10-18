@@ -1,0 +1,484 @@
+syntax = "proto3";
+package api.core;
+
+option go_package = "wcs/api/core;core";
+option java_package = "com.teneasyChat.api.core";
+import "api/option.proto";
+import "validate/validate.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "api/common/c_message.proto";
+import "api/common/c_chat.proto";
+import "api/core/front.proto";
+import "api/common/c_entrance.proto";
+import "api/common/c_base.proto";
+import "api/core/worker.proto";
+
+option(api.info) = {
+  authors: ["calvin"],
+  date: "2022-12-30",
+};
+
+// 历史消息查看分类
+enum MessageSenderType {
+  // 全看
+  SENDER_TYPE_ALL  = 0;
+  // 看用户
+  SENDER_TYPE_USER    = 1;
+  // 看客服
+  SENDER_TYPE_WORKER    = 2;
+}
+
+// KeyWordType
+enum CustomerKeywordType {
+  CKT_All = 0;
+  // 客户
+  CKT_Customer = 1;
+  // 客服
+  CKT_Worker = 2;
+}
+
+message MessageSyncRequest {
+  // 会话id 商户客服需要指定 客户可以省略
+  int64 chat_id = 1;
+  // 客户端已知的最早消息id，服务会发送更早的消息给客户端
+  int64 msg_id = 2;
+  // 加载多少条消息
+  int32 count = 3[(validate.rules).int32={gt:0,lte:500}];
+  // 结果包括msg_id这条信息
+  bool with_last_one = 4;
+  // 指定下级workerId
+  int32 worker_id = 5;
+  // 咨询id
+  uint32 consult_id = 6[(validate.rules).uint32={gt:0}];
+  // 用户id
+  int32  user_id =7;
+}
+
+message MessageSyncResponse {
+  // 请求信息
+  MessageSyncRequest request = 1;
+  // 历史消息
+  repeated common.Message list = 2;
+  // 已过滤最早id, 分页时传递给下一页
+  int64 last_msg_id = 3;
+  string nick=4;
+  // 历史回复消息
+  repeated common.Message replyList = 5;
+}
+
+message MessageSyncV2Request {
+  // 会话id 商户客服需要指定 客户可以省略
+  int64 chat_id = 1;
+  // 客户端已知的最早消息id，服务会发送更早的消息给客户端
+  int64 msg_id = 2;
+  // 加载多少条消息
+  int32 count = 3[(validate.rules).int32={gt:0,lte:500}];
+  // 结果包括msg_id这条信息
+  bool with_last_one = 4;
+  // 指定下级workerId
+  int32 worker_id = 5;
+  // 咨询id
+  uint32 consult_id = 6;
+  // 用户id
+  int32  user_id =7;
+  // 开始秒时间戳
+  int64 start_at = 8[(validate.rules).int64.gt = 0];
+  // 结束秒时间戳
+  int64 end_at = 9[(validate.rules).int64.gt = 0];
+  // 关键字搜索
+  string search = 10;
+}
+
+message MessageSyncV2Response {
+  // 请求信息
+  MessageSyncV2Request request = 1;
+  // 历史消息
+  repeated common.Message list = 2;
+  // 已过滤最早id, 分页时传递给下一页
+  int64 last_msg_id = 3;
+  // 历史回复消息
+  repeated common.Message replyList = 4;
+  int32 uid = 5;
+  string nick=6;
+  string avatar = 7;
+}
+
+// 管理员查看用户历史消息参数
+message MessageSyncManagerRequest {
+  // 会话id 商户客服需要指定 客户可以省略
+  int64 chat_id = 1;
+  // 客户端已知的最早消息id，服务会发送更早的消息给客户端
+  int64 msg_id = 2;
+  // 加载多少条消息
+  int32 count = 3[(validate.rules).int32={gt:0,lte:500}];
+  // 结果包括msg_id这条信息
+  bool with_last_one = 4;
+  // 咨询id
+  uint32 consult_id = 6;
+  // 用户id
+  int32  user_id =7;
+  // 开始秒时间戳
+  int64 start_at = 8[(validate.rules).int64.gt = 0];
+  // 结束秒时间戳
+  int64 end_at = 9[(validate.rules).int64.gt = 0];
+  // 用户昵称
+  string nick=10;
+  // 关键字搜索
+  string search = 11;
+}
+
+// 管理员查看用户历史消息返回
+message MessageSyncManagerResponse {
+  // 请求信息
+  MessageSyncV2Request request = 1;
+  // 咨询消息分组
+  repeated MessageWithWorker list = 2;
+  // 历史回复消息
+  repeated common.Message replyList = 3;
+  // 已过滤最早id, 分页时传递给下一页
+  int64 last_msg_id = 4;
+  int32 uid = 5;
+  string nick=6;
+  string avatar = 7;
+}
+
+message MessageWithWorker {
+  common.Message msg = 1;
+  int32 sender_uid = 2;
+  string sender_name = 3;
+  string sender_avatar = 4;
+}
+
+// 管理员查看用户历史消息-分类分页参数
+message MessageSyncManagerPageRequest {
+  // 会话id 商户客服需要指定 客户可以省略
+  int64 chat_id = 1;
+  // 用户id
+  int32  user_id =2;
+  // 客服id
+  int32 worker_id = 3;
+  // 上一页/下一页
+  common.PageUpDown page_up_down = 5;
+  // 加载多少条消息
+  int32 count = 6;
+  // 开始秒时间戳
+  int64 start_at = 7[(validate.rules).int64.gt = 0];
+  // 结束秒时间戳
+  int64 end_at = 8[(validate.rules).int64.gt = 0];
+  // 查看分类方式
+  MessageSenderType sender_type = 9[(validate.rules).enum = {defined_only: true}];
+  // 最后msg_id
+  int64 last_msg_id = 10;
+  // 最后msg_time 毫秒时间戳
+  int64 last_msg_created_at = 11;
+}
+
+// 管理员查看用户历史消息-分类分页返回
+message MessageSyncManagerPageResponse {
+  // 咨询消息分组
+  repeated MessageWithInfo list = 2;
+  // 已过滤最早id, 分页时传递给下一页
+  int64 last_msg_id = 4;
+  // 总条数
+  int32 total = 5;
+}
+
+message MessageWithInfo {
+  common.Message msg = 1;
+  MessageSenderInfo sender = 2;
+  MessageSenderInfo receiver = 3;
+}
+
+// 管理员查看用户历史消息-总条数
+message MessageSyncManagerTotalResponse {
+  // 总条数
+  int32 total = 5;
+}
+
+message MessageSenderInfo {
+  int32 uid = 1;
+  int32 role = 2;
+  int32 consult_id = 4;
+  string consult_name = 5;
+  string ip = 6;
+  string account = 7;
+  string name = 8;
+  string user_name = 9;
+}
+
+// 管理员查看用户历史消息会话分页参数
+message MessageSyncManagerSessionPageRequest {
+  // 会话id 商户客服需要指定 客户可以省略
+  int64 chat_id = 1;
+  // 用户id
+  int32  user_id =2;
+  // 客服id
+  int32 worker_id = 3;
+  // 开始秒时间戳
+  int64 start_at = 5[(validate.rules).int64.gt = 0];
+  // 结束秒时间戳
+  int64 end_at = 6[(validate.rules).int64.gt = 0];
+  // page
+  common.Page page = 7[(validate.rules).message.required = true];
+}
+
+// 管理员查看用户历史消息会话分页返回
+message MessageSyncManagerSessionPageResponse {
+  // page
+  common.Page page = 1[(validate.rules).message.required = true];
+  // 总条数
+  int32 total = 5;
+  // 咨询消息分组
+  repeated MessageSyncManagerSession list = 2;
+}
+
+message MessageSyncManagerSession {
+  // 用户id
+  int32 user_id = 1;
+  // 用户昵称
+  string user_name = 2;
+  // 客服id
+  int32 worker_id = 3;
+  // 客服昵称
+  string worker_name = 4;
+  // 咨询类型
+  int32 consult_id = 5;
+  // 咨询
+  string consult_name = 6;
+  // 会话时间
+  google.protobuf.Timestamp assign_time = 7;
+  // chat_id
+  int64 chat_id = 8;
+}
+
+// 查询客户列表
+message ManagerSessionCustomerQueryRequest {
+  common.Batch batch = 1[(validate.rules).message.required = true];
+  // 用户名
+  string keyword = 2[(validate.rules).string = {min_len:1}];
+  // 分类
+  CustomerKeywordType type = 3;
+}
+
+message ManagerSessionCustomerQueryResponse {
+  repeated SessionCustomer items = 1;
+  common.Batch batch = 2;
+  int32 total = 3;
+}
+
+// 消息咨询列表参数
+message MessageConsultRequest {
+  // 会话id 商户客服需要指定 客户可以省略
+  int64 chat_id = 1;
+  // 用户id
+  int32  user_id =7;
+  // 开始秒时间戳
+  int64 start_at = 8[(validate.rules).int64.gt = 0];
+  // 结束秒时间戳
+  int64 end_at = 9[(validate.rules).int64.gt = 0];
+}
+
+// 消息咨询列表返回
+message MessageConsultResponse {
+  repeated ConsultWithTotal list = 1;
+}
+
+message ConsultWithTotal {
+  common.Consult consult = 1;
+  int32 total = 2;
+}
+
+message MessageSearchRequest {
+  // 搜索关键词
+  string content = 1[(validate.rules).string = {min_len:2, max_len:256, not_contains:"%"}];
+  // 会话id 可省略
+  int64 chat_id = 2;
+  // 最早消息id, 用户分页加载更多数据
+  int64 msg_id = 3;
+  // 开始时间
+  google.protobuf.Timestamp start = 4;
+  // 结束时间
+  google.protobuf.Timestamp end = 5;
+  // 加载多少条消息
+  int32 count = 6[(validate.rules).int32 = {gt:0, lte:1024}];
+}
+
+message MessageSearchResponse {
+  // 请求信息
+  MessageSearchRequest request = 1;
+  // 历史消息
+  repeated common.Message list = 2;
+  // 已过滤最早id, 分页时传递给下一页
+  int64 last_msg_id = 3;
+  // TODO: 临时字段: 前端没有维护 会话信息, 需要先给会话关联的头像和姓名
+  map<int64, common.ChatDetail> detail = 4;
+}
+
+message QuerySpecMsgRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  int64 msg_id = 2[(validate.rules).int64.gt = 0];
+}
+
+message QuerySpecMsgResponse {
+  common.Message msg = 1;
+}
+
+message QuerySyncRequest {
+  // 会话id 可省略
+  int64 chat_id = 2;
+  // 最早消息id, 用户分页加载更多数据
+  int64 msg_id = 3;
+  // 开始时间
+  int64 start = 4;
+  // 结束时间
+  int64 end = 5;
+  // 加载多少条消息
+  int32 count = 6[(validate.rules).int32 = {gt:0, lte:1024}];
+
+}
+
+message QuerySyncResponse {
+  // 请求信息
+  QuerySyncRequest request = 1;
+  // 历史消息
+  repeated common.Message list = 2;
+  // 已过滤最早id, 分页时传递给下一页
+  int64 last_msg_id = 3;
+
+}
+
+service MessageClientService {
+  option (api.service) = {
+    path: "api/message",
+    auth: [AUTH_ROLE_ACCOUNT, AUTH_ROLE_SERVICE],
+    tags: ["message"],
+  };
+
+  // 同步客户历史消息
+  rpc sync(MessageSyncRequest) returns (MessageSyncResponse) {
+    option (api.method) = {
+      id: 1100,
+      path:"sync",
+      ready: true
+    };
+  }
+}
+
+service MessageTenantService {
+  option (api.service) = {
+    path: "tenant/message",
+    auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+    tags: ["message"],
+  };
+
+  // 同步商户历史消息
+  rpc sync(MessageSyncRequest) returns (MessageSyncResponse) {
+    option (api.method) = {
+      id: 1101,
+      path:"sync",
+      ready: true
+    };
+  }
+
+  // 同步商户历史消息v2
+  rpc syncV2(MessageSyncV2Request) returns (MessageSyncV2Response) {
+    option (api.method) = {
+      id: 1105,
+      path:"syncv2",
+      ready: true
+    };
+  }
+
+  // 搜素商户历史消息
+  rpc search(MessageSearchRequest) returns (MessageSearchResponse) {
+    option (api.method) = {
+      id: 1102,
+      path:"search",
+      ready: true
+    };
+  }
+
+  // 查询指定消息 (使用场景1: 查询的回复消息的过早, 根据现有历史记录找不到, 批量查又浪费性能)
+  rpc QuerySpec(QuerySpecMsgRequest) returns (QuerySpecMsgResponse) {
+    option (api.method) = {
+      id: 1103,
+      path:"query-spec",
+      ready: true
+    };
+  }
+
+  // 查询
+  rpc QuerySync(QuerySyncRequest) returns (QuerySyncResponse) {
+    option (api.method) = {
+      id: 1104,
+      path:"query-sync",
+      ready: true
+    };
+  }
+
+  // 管理员查看用户历史消息
+  rpc syncManager(MessageSyncManagerRequest) returns (MessageSyncManagerResponse) {
+    option (api.method) = {
+      id: 1106,
+      path:"sync-manager",
+      ready: true
+    };
+  }
+
+  // 消息咨询列表
+  rpc consult(MessageConsultRequest) returns (MessageConsultResponse) {
+    option (api.method) = {
+      id: 1107,
+      path:"message-consult",
+      ready: true
+    };
+  }
+
+  // 客户查询
+  rpc QueryCustomer(ManagerSessionCustomerQueryRequest) returns (ManagerSessionCustomerQueryResponse) {
+    option (api.method) = {
+      id: 1108,
+      path: "query-customer",
+      ready: true,
+      date: "2024-05-10"
+    };
+  }
+
+  // 管理员查看用户历史消息-分类分页
+  rpc syncManagerMessagePage(MessageSyncManagerPageRequest) returns (MessageSyncManagerPageResponse) {
+    option (api.method) = {
+      id: 1109,
+      path:"sync-manager/page-message",
+      ready: true
+    };
+  }
+
+  // 管理员查看用户历史消息-会话列表
+  rpc syncManagerSessionPage(MessageSyncManagerSessionPageRequest) returns (MessageSyncManagerSessionPageResponse) {
+    option (api.method) = {
+      id: 1109,
+      path:"sync-manager/page-session",
+      ready: true
+    };
+  }
+
+  // 管理员查看用户历史消息-导出
+  rpc syncManagerMessageExport(MessageSyncManagerPageRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 1110,
+      path:"sync-manager/message-export",
+      ready: true
+    };
+  }
+
+  // 管理员查看用户历史消息-导出
+  rpc syncManagerMessageTotal(MessageSyncManagerPageRequest) returns (MessageSyncManagerTotalResponse) {
+    option (api.method) = {
+      id: 1111,
+      path:"sync-manager/message-total",
+      ready: true
+    };
+  }
+}
+

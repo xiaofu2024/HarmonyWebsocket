@@ -1,0 +1,839 @@
+syntax = "proto3";
+package api.core;
+
+option go_package = "wcs/api/core;core";
+option java_package = "com.teneasyChat.api.core";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+import "api/option.proto";
+import "api/common/c_worker.proto";
+import "api/common/c_base.proto";
+import "api/common/c_chat.proto";
+import "api/common/c_message.proto";
+import "google/protobuf/timestamp.proto";
+
+option(api.info) = {
+  authors: ["jeff"],
+  date: "2022-12-06",
+};
+
+// 查询客服
+message WorkerQueryRequest {
+  common.Batch batch = 1[(validate.rules).message.required = true];
+  optional string name = 2[(validate.rules).string = {min_len:1, max_len:32}];
+  optional int32 queryType = 3;
+  optional int64 group_pid=4;
+  optional int64 group_cid=5;
+}
+
+message WorkerQueryResponse {
+  repeated common.Worker items = 1;
+  common.Batch batch = 2;
+  int32 total = 3;
+}
+
+message WorkerQuerySelfResponse {
+  common.Worker self = 1;
+}
+
+//申请客服云信账号
+message NIMAccountRequest {
+  int32 workerID = 1;
+  string name = 2;
+  string avatar = 3;
+}
+
+//回复客服云信账号
+message NIMAccountResponse {
+  string nimaccid = 1;//账号
+  string nimname = 2;//姓名
+  string nimtoken = 3;//token
+}
+
+// 创建客服
+message WorkerCreateRequest {
+  // 客服账号
+  string account = 1[(validate.rules).string = {min_len:3, max_len:16}];
+  string password = 2[(validate.rules).string = {min_bytes:6, max_bytes:20}];
+
+  // 所在的组
+  repeated int64 group_ids = 3[(validate.rules).repeated.unique = true];
+
+  // 权限掩码, 理解有困难的话 随时可调
+  int32 perm_mask = 4[(validate.rules).int32.gt = 0];
+
+  // 客服名
+  string name = 6[(validate.rules).string = {min_len:1, max_len:32}];
+
+  // 头像url, 预留
+  string avatar = 7[(validate.rules).string.max_len = 4096];
+
+  // 是否创建云信账号
+  optional bool bneednim = 8;
+  //云信头像,需要外部拼接
+  optional string avatarurl = 9;
+  // 消息提示
+  optional string tips = 10;
+  repeated  int64  group_cids = 11[(validate.rules).repeated.unique = true];
+}
+
+// 更新客服
+// 为何不做全量修改:
+// 密码前端不知道, 修改后才能请求
+message WorkerUpdateRequest {
+  int32 worker_id = 1[(validate.rules).int32 = {gt:0, lte:32767}];
+
+  optional string password = 2[(validate.rules).string = {min_bytes:6, max_bytes:20}];
+  // 所在的组
+  optional common.SetInt64 group_ids = 3;
+  // 权限掩码, 前端理解有困难的话 随时可调
+  optional int32 perm_mask = 5[(validate.rules).int32.gt = 0];
+  // 客服名
+  optional string name = 6[(validate.rules).string = {min_len:1, max_len:32}];
+  // 头像url, 预留
+  optional string avatar = 7[(validate.rules).string.max_len = 4096];
+
+  // 云信Id
+  optional string nimid = 8;
+  // 云信session
+  optional string nimtoken = 9;
+
+  // 消息提示
+  optional string tips = 10;
+  repeated int64  group_cids =11;
+}
+
+message WorkerSession {
+  int32 worker_id = 1;
+  int32 session_id = 2;
+  common.ConnectState connect_state = 3;
+  common.OnlineState online_state = 4;
+}
+
+// 删除客服
+message WorkerDeleteRequest {
+  // worker_id 1 = 商户账号, 不可操作
+  int32 worker_id = 1[(validate.rules).int32 = {gt:1, lte:32767}];
+}
+
+// 禁用/启用客服
+message WorkerDisableRequest {
+  // worker_id 1 = 商户账号, 不可操作
+  int32 worker_id = 1[(validate.rules).int32 = {gt:1, lte:32767}];
+  // 禁用/启用
+  common.DisableStatus disable_status = 2[(validate.rules).enum = {}];
+}
+
+// 将指定聊天会话转给指定客服
+message WorkerTransferRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  int32 worker_id = 2[(validate.rules).int32 = {gt:0, lte:32767}];
+  // 咨询id
+  uint32 consult_id = 3;
+}
+
+// 将指定聊天会话转给指定客服
+message WorkerTransferConsultsRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  repeated int64 groupid = 2;
+  // 目标咨询id
+  uint32 consult_id = 3;
+}
+
+// 将指定聊天会话转给指定客服
+message WorkerTransferConsultsResponse {
+  common.Worker worker = 1;
+}
+
+message BlacklistApplyRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+  // 转给有权限的客服目标
+  int32 worker_id = 2[(validate.rules).int32 = {gt:0, lte:32767}];
+}
+
+message BlacklistConfirmRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+}
+
+message BlacklistRecoverRequest {
+  int64 chat_id = 1[(validate.rules).int64.gt = 0];
+}
+
+message CheckWorkerStatusResponse {
+  common.Worker worker = 1;
+}
+
+message CheckWorkerStatusRequest {
+  // 咨询id
+  uint32 consult_id = 1[(validate.rules).uint32 = {gt:0}];
+}
+
+
+message GetWorkerStatusRequest {
+  int32 worker_id = 1[(validate.rules).int32 = {gt:0, lte:32767}];
+  optional common.ConnectState connect_state = 2[(validate.rules).enum.defined_only = true];
+  optional common.OnlineState online_state = 3[(validate.rules).enum.defined_only = true];
+}
+
+message GetWorkerStatusResponse {
+  repeated WorkerSession worker_session = 1;
+}
+
+message SetWorkerStatusRequest {
+  common.OnlineState online_state = 1[(validate.rules).enum.defined_only = true];
+}
+
+message ApplyWorkerStateRequest {
+  common.OnlineState apply_state = 1;
+  common.OnlineState now_state = 2;
+}
+
+//message WorkerTransferResponse {
+//  common.Worker worker = 1;
+//}
+
+
+message WorkerTransferResponse {
+  common.Worker worker = 1;
+}
+
+message PasswordRequest {
+  string old_password = 1[(validate.rules).string = {min_bytes:6, max_bytes:20}];
+  string new_password = 2[(validate.rules).string = {min_bytes:6, max_bytes:20}];
+}
+
+message QueryFronterRequest {
+  // 客服名称
+  optional string name = 1[(validate.rules).string = {min_len:1, max_len:10}];
+  common.Batch batch = 2[(validate.rules).message.required = true];
+}
+
+message QueryFronterResponse {
+  repeated QueryFronterItem items = 1;
+  int32 total = 2;
+}
+
+message QueryFronterItem {
+  // 客服名称
+  string name = 1;
+  // 用户名
+  string account = 2;
+  // 客服组
+  repeated string group = 3;
+  // 是否是主管
+  bool isManager = 4;
+  // 客服id
+  int32 worker_id = 5;
+}
+
+message DataQueryRequest {
+  // 统计时间开始时间
+  optional string start_time = 1[(validate.rules).string = {min_len:1, max_len:64}];
+  // 统计时间结束时间
+  optional string end_time = 2[(validate.rules).string = {min_len:1, max_len:64}];
+  // 客服组
+  repeated int32 group_id = 3;
+  // 客服身份
+  optional common.WorkerPermission worker_identity = 4[(validate.rules).enum = {not_in:[0]}];
+  // 客服名称
+  common.Page page = 5[(validate.rules).message.required = true];
+}
+
+message DataQueryResponse {
+  repeated DataQueryItem item = 1;
+
+  int32 total = 2;
+  // 统计人数
+  int32 count_player = 3;
+  // 平均3分钟回复率
+  float three_rate = 4;
+  // 平均响应时长
+  float response_time = 5;
+  // 平均服务时长
+  float server_time = 6;
+  // 累计在线时长
+  float count_online_time = 7;
+  // 平均接任务数
+  int32 accepted_num = 8;
+  // 平均转任务数
+  int32 transfer_task = 9;
+  // 客服上限人数
+  int32 workerLimit = 10;
+  // 现有客服人数
+  int32 currentWorkers = 11;
+}
+
+message DataQueryItem {
+  // 客服名称
+  string name = 1;
+  // 分配人数
+  int32 match_num = 2;
+  // 3分钟回复率
+  string three_response_rate = 3;
+  // 转任务数
+  int32 switching_task = 4;
+  // 接受任务数
+  int32 accept_assignment = 5;
+  // 平均响应时长
+  float corresponding_time = 6;
+  // 所在组
+  repeated string belong_group = 7;
+  // 是否是一线客服
+  bool first_line = 8;
+  // 是否是主管
+  bool is_manager = 9;
+  // 平均服务时长
+  float average_time = 10;
+  // 累计在线时长
+  float accumulated_online_duration = 11;
+}
+
+// 查询指定权限客服, 目前只开发 查询 可转移权限, 可拉黑名单权限
+message QuerySpecPermWorkerRequest {
+  common.WorkerPermission perm = 1[(validate.rules).enum = {defined_only:true, in:[16, 64]}];
+  int64 chat_id = 2;
+}
+
+message WorkerListByGroup {
+  common.WorkerGroup group = 1;
+  repeated common.Worker worker = 2;
+}
+
+message QuerySpecPermWorkerResponse {
+  repeated WorkerListByGroup groups = 1;
+}
+
+message TryCleanupAssignedWorkerResponse {
+  bool cleaned = 1;
+}
+
+message UnfreezeSessionRequest {
+  int64 chat_id = 1;
+  int32 consultid = 2;
+}
+
+message UnfreezeSessionResponse {
+  api.common.ChatState state = 1;
+  api.common.ChatItem chat = 2;
+}
+
+message QuerySessionRequest {
+  int64 chat_id = 1;
+}
+
+message QuerySessionResponse {
+  api.common.ChatItem chat = 1;
+}
+
+// 商户通知到客户端
+message NotifyMessageRequest {
+  //咨询id
+  int32 consultid = 3;
+
+  int32 userid = 4;
+  string msg = 5;
+
+}
+
+message TransferMessageReq{
+  int64 chatId = 1;
+}
+
+message ThirdOrder {
+  int64 id =1;
+  string order_no=2;
+  int64 userid=3;
+  string is_online_pay_desc=4;
+  string is_matching_pay_desc=5;
+  string type_desc=6;
+  string status_desc=7;
+  string confirm_desc=8;
+  string create_time=9;
+  string push_status_desc=10;
+  string finish_time_desc=11;
+  string card_type =12;
+  string match_status_desc =13;
+  string img_upload_time =14;
+  string receipt_email =15;
+  string amount =16;
+  string recharge_name =17;
+  string account_name =18;
+}
+
+message TransferMessageRsp{
+  repeated ThirdOrder data=1;
+}
+
+message HistoryRechargesRequest {
+  int64 chat_id = 1;
+}
+
+message HistoryRechargesResponse {
+  repeated ThirdOrder data = 1;
+}
+
+message QueryChildByGroupRequest {
+  int64 group_id = 1;
+}
+
+message QueryChildByGroupResponse {
+  repeated common.WorkerGroup group = 1;
+}
+
+message GetApplyWorkerStateListReq {
+  common.Batch batch = 1[(validate.rules).message.required = true];
+  string name = 2;
+  // 0,1,2,3,4 全部/待审核/通过/拒绝/通过,无需审核
+  int32 apply_state = 3;
+}
+
+message GetApplyWorkerStateListResp{
+  repeated common.ApplyWorkerState applys=1;
+  int32 total = 2;
+}
+
+message GetApplyWorkerStateResp{
+  common.OnlineState online_state_now =1;
+  common.OnlineState online_state_apply =2;
+  int64  apply_time =3;
+  int32  apply_state =4;
+  int64  check_time =5;
+}
+
+// 查询客户列表
+message SessionCustomerQueryRequest {
+  common.Batch batch = 1[(validate.rules).message.required = true];
+  // 用户名
+  string keyword = 2[(validate.rules).string = {min_len:1}];
+  // 咨询id
+  uint32 consult_id = 3;
+}
+
+message SessionCustomer {
+  // 用户UID
+  int32 uid = 1;
+  // 用户名
+  string name = 2;
+  // 用户头像
+  string avatar = 3;
+  // 用户称呼(备注)
+  string nick = 4;
+  // chatId
+  int64 chat_id = 5;
+  // IP
+  string ip = 6;
+  // 创建时间
+  google.protobuf.Timestamp create_at = 7;
+  // 商户ID
+  int32 tenant_id = 8;
+}
+
+message SessionCustomerQueryResponse {
+  repeated SessionCustomer items = 1;
+  common.Batch batch = 2;
+  int32 total = 3;
+}
+
+message CheckWorkerStateReq{
+  int64 id = 1;
+  bool access= 2;
+}
+
+message GetQlUrlResp{
+  string base64_url=1;
+  string google_key=2;
+}
+
+message GlReq{
+  string code=1;
+}
+
+message GlResp{
+  bool ok=1;
+  string err_msg=2;
+}
+
+message WorkerTransferAllReq{
+  uint32 consult_id=1;
+}
+
+message WorkerTransferAllResp{
+  bool ok=1;
+  string msg=2;
+}
+
+service Worker {
+  option (api.service) = {
+    path: "/tenant/worker",
+    tags: ["worker"],
+    auth: [AUTH_ROLE_TENANT],
+  };
+
+  // 数据统计查询
+  rpc DataQuery(DataQueryRequest) returns (DataQueryResponse) {
+    option (api.method) = {
+      id: 511,
+      path: "data-query",
+      ready: true,
+      date: "2022-12-10"
+    };
+  }
+
+  rpc QueryFronter(QueryFronterRequest) returns (QueryFronterResponse) {
+    option (api.method) = {
+      id: 500,
+      path: "query-fronted",
+      ready: true,
+      date: "2022-12-10"
+    };
+  }
+
+  rpc Query(WorkerQueryRequest) returns (WorkerQueryResponse) {
+    option (api.method) = {
+      id: 500,
+      path: "query",
+      ready: true,
+      date: "2022-12-10"
+    };
+  }
+
+  rpc Create(WorkerCreateRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 501,
+      path: "create",
+      ready: true,
+      date: "2022-12-10"
+    };
+  }
+
+  rpc Update(WorkerUpdateRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 502,
+      path: "update",
+      ready: true,
+      date: "2022-12-10"
+    };
+  }
+
+  rpc Delete(WorkerDeleteRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 503,
+      path: "delete",
+      ready: true,
+      date: "2022-12-10"
+    };
+  }
+
+  // 转接客服
+  rpc Transfer(WorkerTransferRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 504,
+      path: "transfer",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+  // 转接客服
+  rpc TransferConsults(WorkerTransferConsultsRequest) returns (WorkerTransferConsultsResponse) {
+    option (api.method) = {
+      id: 504,
+      path: "transfer-Consults",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+
+  rpc TransferAll(WorkerTransferAllReq) returns (WorkerTransferAllResp) {
+    option (api.method) = {
+      id: 504,
+      path: "transfer-all",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+
+  rpc UnbindAll(WorkerTransferAllReq) returns (WorkerTransferAllResp) {
+    option (api.method) = {
+      id: 504,
+      path: "unbind-all",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+
+  // 获取客服状态
+  rpc GetWorkerStatus(GetWorkerStatusRequest) returns (GetWorkerStatusResponse) {
+    option (api.method) = {
+      id: 505,
+      path: "get-worker-status",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+
+  // 设置客服状态
+  rpc SetWorkerStatus(SetWorkerStatusRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 506,
+      path: "set-worker-status",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+
+  // 检查客服状态
+  rpc CheckWorkerStatus(CheckWorkerStatusRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 507,
+      path: "check-worker-status",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2022-12-30"
+    };
+  }
+
+  // 修改密码
+  rpc Password(PasswordRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 508,
+      path: "password",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-01-09"
+    };
+  }
+
+  // 指定聊天会话拉入黑名单(申请并转交)
+  rpc BlacklistApply(BlacklistApplyRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 509,
+      path: "black-list-apply",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-01-10"
+    };
+  }
+
+  // 指定聊天会话拉入黑名单(确认)
+  rpc BlacklistConfirm(BlacklistConfirmRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 510,
+      path: "black-list-confirm",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-01-10"
+    };
+  }
+
+  // 指定聊天会话从黑名单恢复到已接待
+  rpc BlacklistRecover(BlacklistRecoverRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 511,
+      path: "black-list-recover",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-01-28"
+    };
+  }
+
+  // 查询客服根据权限
+  rpc QueryByPerm(QuerySpecPermWorkerRequest) returns (QuerySpecPermWorkerResponse) {
+    option (api.method) = {
+      id: 512,
+      path: "query-by-perm",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-01-10"
+    };
+  }
+
+  // 尝试清理之前分配的,不符合商户预设状态的客服
+  rpc TryCleanupAssignedWorker(google.protobuf.Empty) returns (TryCleanupAssignedWorkerResponse) {
+    option (api.method) = {
+      id: 513,
+      path: "try-cleanup-assigned-worker",
+      ready: true,
+      auth: [AUTH_ROLE_ACCOUNT, AUTH_ROLE_SERVICE],
+      date: "2023-02-09"
+    };
+  }
+
+  rpc QuerySelf(google.protobuf.Empty) returns (WorkerQuerySelfResponse) {
+    option (api.method) = {
+      id: 514,
+      path: "query-self",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-03-04"
+    };
+  }
+
+  rpc UnfreezeSession(UnfreezeSessionRequest) returns (UnfreezeSessionResponse) {
+    option (api.method) = {
+      id: 515,
+      path: "unfreeze-session",
+      ready: true,
+      auth: [AUTH_ROLE_SERVICE],
+      date: "2023-04-19"
+    };
+  }
+
+  rpc QuerySession(QuerySessionRequest) returns (QuerySessionResponse) {
+    option (api.method) = {
+      id: 516,
+      path: "query-session",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-04-21"
+    };
+  }
+  rpc CreateNimAccount(NIMAccountRequest) returns (NIMAccountResponse) {
+    option (api.method) = {
+      id: 516,
+      path: "create-nimaccount",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-11-06"
+    };
+  }
+
+  // 通知
+  rpc NotifyMessage(NotifyMessageRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 517,
+      path: "notify-message",
+      ready: true,
+      auth: [AUTH_ROLE_DEVICE,AUTH_ROLE_SERVICE],
+      date: "2024-01-09"
+    };
+  }
+
+  // 获取历史提现记录
+  rpc TransferWithDraWal(TransferMessageReq) returns (TransferMessageRsp) {
+    option (api.method) = {
+      id: 517,
+      path: "transfer-withdrawal",
+      ready: true,
+      auth: [AUTH_ROLE_DEVICE,AUTH_ROLE_SERVICE],
+      date: "2024-04-05"
+    };
+  }
+
+  rpc QueryChildByGroup(QueryChildByGroupRequest) returns (QueryChildByGroupResponse) {
+    option (api.method) = {
+      id: 512,
+      path: "query-group-child",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+      date: "2023-01-10"
+    };
+  }
+
+  // 客户查询
+  rpc QueryCustomer(SessionCustomerQueryRequest) returns (SessionCustomerQueryResponse) {
+    option (api.method) = {
+      id: 513,
+      path: "query-customer",
+      ready: true,
+      date: "2024-05-10"
+    };
+  }
+
+  // 禁用/启用客服
+  rpc Disable(WorkerDisableRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 514,
+      path: "disable",
+      ready: true,
+      date: "2024-05-24"
+    };
+  }
+
+  rpc ApplyWorkerState(ApplyWorkerStateRequest) returns (google.protobuf.Empty){
+    option (api.method) = {
+      id: 515,
+      path: "apply-worker-state",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+  rpc GetApplyWorkerStateList(GetApplyWorkerStateListReq) returns (GetApplyWorkerStateListResp){
+    option (api.method) = {
+      id: 516,
+      path: "apply-worker-state-list",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+
+  rpc CheckWorkerState(CheckWorkerStateReq) returns (google.protobuf.Empty){
+    option (api.method) = {
+      id: 517,
+      path: "check-worker-state",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+
+  rpc GetApplyWorkerState(google.protobuf.Empty) returns (GetApplyWorkerStateResp){
+    option (api.method) = {
+      id: 518,
+      path: "get-apply-worker-state",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+
+  // 历史充值记录
+  rpc HistoryRecharges(HistoryRechargesRequest) returns (HistoryRechargesResponse) {
+    option (api.method) = {
+      id: 519,
+      path: "history-recharges",
+      ready: true,
+      auth: [AUTH_ROLE_DEVICE,AUTH_ROLE_SERVICE],
+      date: "2024-06-17"
+    };
+  }
+
+  rpc GetGlUrl(google.protobuf.Empty) returns (GetQlUrlResp){
+    option (api.method) = {
+      id: 520,
+      path: "get-Gl-url",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+
+  rpc BindGl(GlReq) returns (GlResp){
+    option (api.method) = {
+      id: 521,
+      path: "bind-Gl",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+
+  rpc VerifyGl(GlReq) returns(GlResp){
+    option (api.method) = {
+      id: 522,
+      path: "verify-Gl",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+
+  rpc ResetGl(GlReq) returns(GlResp){
+    option (api.method) = {
+      id: 523,
+      path: "reset-Gl",
+      ready: true,
+      auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+    };
+  }
+}

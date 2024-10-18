@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+  wcs:
+    image: harbor.77devops.com/wangwang-public/wangwang-wng_protoc:latest 
+    container_name: wcs_gentool
+    network_mode: host
+    user: $APP_USER
+    environment:
+      - TZ=Asia/Shanghai
+      - APP_API_GATEWAY
+    entrypoint: /bin/env
+    command: /bin/top
+    volumes:
+      - ./_proto_gen.sh:/proto_gen.sh
+      - ../deps/bin/protoc-gen-gox:/usr/bin/protoc-gen-gox
+      - ../deps/bin/protoc-gen-go-wcs:/usr/bin/protoc-gen-go-wcs
+      - ../proto/:/proto/
+      - ../service:/service/
+      - ../../:/out/

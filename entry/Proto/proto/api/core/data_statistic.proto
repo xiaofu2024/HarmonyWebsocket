@@ -1,0 +1,751 @@
+syntax = "proto3";
+package api.core;
+
+option go_package = "wcs/api/core;core";
+option java_package = "com.teneasyChat.api.core";
+import "api/option.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+import "api/common/c_worker.proto";
+import "google/protobuf/timestamp.proto";
+
+option(api.info) = {
+  authors: ["yueleng"],
+  date: "2024-05-27",
+};
+
+message WorkerStatisticsRequest {
+  // 客服组id
+  int32 group_id = 1;
+  // 客服身份
+  common.WorkerPermission worker_identity = 3;
+  // 开始时间
+  int64 start_time = 4;
+  // 结束时间
+  int64 end_time = 5;
+  // 页数
+  uint32 page = 6;
+  // 每页大小
+  uint32 pageSize = 7;
+}
+
+message WorkerStatisticsResponse {
+  // 客服上限人数
+  int32 worker_max_num = 1;
+  // 现有客服人数
+  int32 worker_current_num = 2;
+  // 统计人数
+  int32 user_count = 3;
+  // 所有客服平均三分钟回复率
+  float reply_rate = 4;
+  // 所有客服平均响应时长(分)
+  string response_duration = 5;
+  //  所有客服平均服务时长(分)
+  string server_duration = 6;
+  // 所有累积在线时长(小时)
+  string online_duration = 7;
+  // 所有转任务数
+  int32 transfer_task_num = 8;
+  // 所有接任务数
+  int32 receive_task_num = 9;
+  // 客服统计列表
+  repeated WorkerStatistic statistics = 10;
+  // 总数
+  int64 count = 11;
+}
+
+message WorkerStatistic {
+  int32 worker_id = 1;
+    // 客服账号
+    string worker_account = 2;
+  // 客服昵称
+  string worker_nickname = 3;
+  // 分配人数
+  int32 assign_num = 4;
+  // 3分钟回复率
+  float reply_rate = 5;
+  // 转任务数
+  int32 transfer_task_num = 6;
+  // 接任务数
+  int32 receive_task_num = 7;
+  // 平均响应时长(分)
+  string response_duration = 8;
+  // 客服组id
+  int32 group_id = 9;
+  // 客服组昵称
+  string group_nickname = 10;
+  // 客服分组id
+  int32 sub_group_id = 11;
+  // 客服分组昵称
+  string sub_group_nickname = 12;
+  // 客服身份
+  common.WorkerPermission worker_identity = 13;
+  // 平均服务时长(分)
+  string server_duration = 14;
+  // 累积在线时长(小时)
+  string online_duration = 15;
+}
+
+message WorkerReceptionLogsRequest {
+  // 客服组id
+  int32 group_id = 1;
+  // 开始时间
+  int64 start_time = 2;
+  // 结束时间
+  int64 end_time = 3;
+  // 页数
+  uint32 page = 4;
+  // 每页大小
+  uint32 pageSize = 5;
+}
+
+message WorkerReceptionLogsResponse {
+  // 客服接待列表
+  repeated WorkerReceptionLog receptionLogs = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message WorkerReceptionLog {
+  int32 worker_id = 1;
+  // 客服账号
+  string worker_account = 2;
+  // 客服昵称
+  string worker_nickname = 3;
+  // 客服组id
+  int32 group_id = 4;
+  // 客服组昵称
+  string group_nickname = 5;
+  // 分流用户数
+  int32 assign_user_num = 6;
+  // 发送消息数
+  int32 send_message_num = 7;
+  // 接收消息数
+  int32 receive_message_num = 8;
+  // 记录条数(发送消息和接收消息的总数)
+  int32 total_message_num = 9;
+  // 客服推送消息数
+  int32 notify_message_num = 10;
+}
+
+message ExportWorkerReceptionLogsRequest {
+  // 客服组id
+  int32 group_id = 1;
+  // 开始时间
+  int64 start_time = 2;
+  // 结束时间
+  int64 end_time = 3;
+}
+
+message QuestionTypesRequest {
+  // id
+  int32 id = 1;
+  // 标题模糊搜索
+  string title = 2;
+  // 页数
+  uint32 page = 3;
+  // 每页大小
+  uint32 pageSize = 4;
+}
+
+message QuestionTypesResponse {
+  repeated QuestionType question_types = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message QuestionType {
+  // id
+  int32 id = 1;
+  // 标题
+  string title = 2;
+  // 创建时间
+  google.protobuf.Timestamp created_at = 3;
+  // 更新时间
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message ConsultTypeQuestionStatsRequest {
+  // 咨询类型id
+  int32 id = 1;
+  // 页数
+  uint32 page = 2;
+  // 每页大小
+  uint32 pageSize = 3;
+}
+
+message ConsultTypeQuestionStatsResponse {
+  repeated ConsultTypeQuestionStat question_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message ConsultTypeQuestionStat {
+  // 咨询类型id
+  int32 consult_type_id = 2;
+  // 咨询类型昵称
+  string consult_type_name = 3;
+  // 问题类型统计
+  int64 question_type_count = 4;
+  // 操作人昵称
+  string operator_name = 5;
+  // 操作时间
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message ConsultTypeQuestionsRequest {
+  // 咨询类型id
+  int32 id = 1;
+  // 页数
+  uint32 page = 2;
+  // 每页大小
+  uint32 pageSize = 3;
+}
+
+message ConsultTypeQuestionsResponse {
+  repeated ConsultTypeQuestion questions = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message ConsultTypeQuestion {
+  // 主键id
+  int32 id = 1;
+  // 咨询类型id
+  int32 consult_type_id = 2;
+  // 咨询类型昵称
+  string consult_type_name = 3;
+  // 问题类型id
+  int32 question_type_id = 4;
+  // 问题类型标题
+  string question_type_title = 5;
+  // 排序值
+  int32 sort_value = 6;
+  // 操作人昵称
+  string operator_name = 7;
+  // 配置/更新时间
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message AddConsultTypeQuestionRequest {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 问题类型id(匹配到问题类型使用此字段)
+  int32 question_type_id = 2;
+  // 问题类型标题(未匹配到问题类型使用此字段)
+  string question_type_title = 3;
+  // 排序值
+  int32 sort_value = 4;
+}
+
+message DeleteConsultTypeQuestionRequest {
+  // id
+  int32 id = 1;
+}
+
+message UpdateConsultTypeQuestionRequest {
+  // id
+  int32 id = 1;
+  // 问题类型id
+  int32 question_type_id = 2;
+  // 问题类型标题
+  string question_type_title = 3;
+  // 排序值
+  int32 sort_value = 4;
+}
+
+message AddQuestionTypeRemarkRequest {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 咨询原文
+  string remark = 2;
+  // 问题类型列表
+  repeated int32 question_type_ids = 3;
+}
+
+message QuestionTypeRemarksRequest {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 客服账号
+  string worker_account = 2;
+  // 开始统计时间
+  google.protobuf.Timestamp start_time = 3;
+  // 结束统计时间
+  google.protobuf.Timestamp end_time = 4;
+  // 页数
+  uint32 page = 5;
+  // 每页大小
+  uint32 pageSize = 6;
+}
+
+message QuestionTypeRemarksResponse {
+  repeated QuestionTypeRemark question_type_remarks = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message QuestionTypeRemark {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 咨询类型昵称
+  string consult_type_name = 2;
+  // 客服id
+  int32 worker_id = 3;
+  // 客服账号
+  string worker_account = 4;
+  // 客服昵称
+  string worker_nickname = 5;
+  // 咨询原文
+  string remark = 6;
+  // 问题类型统计
+  int64 question_type_count = 7;
+  // 问题类型列表
+  repeated QuestionType question_types = 8;
+  // 提交时间
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message QuestionTypeWithWorkerStatsRequest {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 问题类型id
+  int32 question_type_id = 2;
+  // 客服账号
+  string worker_account = 3;
+  // 客服账号
+  string worker_nickname = 4;
+  // 开始统计时间
+  google.protobuf.Timestamp start_time = 5;
+  // 结束统计时间
+  google.protobuf.Timestamp end_time = 6;
+  // 页数
+  uint32 page = 7;
+  // 每页大小
+  uint32 pageSize = 8;
+}
+
+message QuestionTypeWithWorkerStatsResponse {
+  repeated QuestionTypeWithWorkerStat question_type_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message QuestionTypeWithWorkerStat {
+  // 问题类型id
+  int32 question_type_id = 1;
+  // 问题类型标题
+  string question_type_title = 2;
+  // 咨询类型id
+  int32 consult_type_id = 3;
+  // 咨询类型昵称
+  string consult_type_name = 4;
+  // 客服id
+  int32 worker_id = 5;
+  // 客服账号
+  string worker_account = 6;
+  // 客服昵称
+  string worker_nickname = 7;
+  // 客服组id
+  int32 group_id = 8;
+  // 客服组昵称
+  string group_nickname = 9;
+  // 客服分组id
+  int32 sub_group_id = 10;
+  // 客服分组昵称
+  string sub_group_nickname = 11;
+  // 问题添加备注次数
+  int32 add_remark_num = 12;
+  // 接待用户数量
+  int32 reception_user_num = 13;
+}
+
+message QuestionTypeRemarkStatsRequest {
+  // 客服组id
+  int32 group_id = 1;
+  // 客服账号
+  string worker_account = 2;
+  // 客服昵称
+  string worker_nickname = 3;
+  // 开始统计时间
+  google.protobuf.Timestamp start_time = 4;
+  // 结束统计时间
+  google.protobuf.Timestamp end_time = 5;
+  // 页数
+  uint32 page = 6;
+  // 每页大小
+  uint32 pageSize = 7;
+}
+
+message QuestionTypeRemarkStatsResponse {
+  repeated QuestionTypeRemarkStat question_type_remark_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message QuestionTypeRemarkStat {
+  // 客服id
+  int32 worker_id = 1;
+  // 客服账号
+  string worker_account = 2;
+  // 客服昵称
+  string worker_nickname = 3;
+  // 客服组id
+  int32 group_id = 4;
+  // 客服组昵称
+  string group_nickname = 5;
+  // 客服分组id
+  int32 sub_group_id = 6;
+  // 客服分组昵称
+  string sub_group_nickname = 7;
+  // 问题添加备注次数
+  int32 add_remark_num = 8;
+  // 接待用户数量
+  int32 reception_user_num = 9;
+  // 会话开始日期id
+  int32 day_id = 10;
+}
+
+message QuestionTypeWorkerRemarkStatsRequest {
+  int32 worker_id = 1;
+  // 会话开始日期id
+  int32 day_id = 2;
+}
+
+message QuestionTypeWorkerRemarkStatsResponse {
+  repeated QuestionTypeWorkerRemarkStat question_type_worker_remark_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message QuestionTypeWorkerRemarkStat {
+  // 问题类型id
+  int32 question_type_id = 1;
+  // 问题类型昵称
+  string question_type_title = 2;
+  // 问题添加备注次数
+  int32 add_remark_num = 3;
+}
+
+message ConsultTypeRemarkStatsRequest {
+  // 页数
+  uint32 page = 1;
+  // 每页大小
+  uint32 pageSize = 2;
+}
+
+message ConsultTypeRemarkStatsResponse {
+  repeated ConsultTypeRemarkStat consult_type_remark_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message ConsultTypeRemarkStat {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 咨询类型昵称
+  string consult_type_name = 2;
+  // 咨询人数
+  int32 reception_user_num = 3;
+  // 问题添加备注次数
+  int32 add_remark_num = 4;
+}
+
+message ConsultTypeWorkerRemarkStatsRequest {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 页数
+  uint32 page = 2;
+  // 每页大小
+  uint32 pageSize = 3;
+}
+
+message ConsultTypeWorkerRemarkStatsResponse {
+  repeated ConsultTypeWorkerRemarkStat worker_remark_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message ConsultTypeWorkerRemarkStat {
+  // 咨询类型id
+  int32 consult_type_id = 1;
+  // 咨询类型昵称
+  string consult_type_name = 2;
+  // 客服id
+  int32 worker_id = 3;
+  // 客服账号
+  string worker_account = 4;
+  // 客服昵称
+  string worker_nickname = 5;
+  // 问题添加备注次数
+  int32 add_remark_num = 6;
+}
+
+message QuestionTypeStatsRequest {
+  // 页数
+  uint32 page = 1;
+  // 每页大小
+  uint32 pageSize = 2;
+}
+
+message QuestionTypeStatsResponse {
+  repeated QuestionTypeStat question_type_stats = 1;
+  // 总数
+  int64 total = 2;
+}
+
+message QuestionTypeStat {
+  // 问题类型id
+  int32 question_type_id = 1;
+  // 问题类型昵称
+  string question_type_title = 2;
+  // 同问题咨询组配置统计
+  int32 with_consult_type_count = 3;
+  repeated ConsultTypeQuestion with_consult_types = 4;
+  // 问题添加备注次数
+  int32 add_remark_num = 5;
+  // 接待用户数量
+  int32 reception_user_num = 6;
+}
+
+message UpdateQuestionTypeRequest {
+  // 问题类型id
+  int32 question_type_id = 1;
+  // 问题类型昵称
+  string question_type_title = 2;
+}
+
+message DeleteQuestionTypeRequest {
+  // 问题类型id
+  int32 question_type_id = 1;
+}
+
+message AddQuestionTypeRequest {
+  // 问题类型昵称
+  string question_type_title = 1;
+}
+
+// 管理后台-数据统计
+service DataStatistic {
+  option (api.service) = {
+    path: "tenant/data",
+    tags: ["data"],
+    auth: [AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE],
+  };
+
+  // 客服统计列表
+  rpc WorkerStatistics(WorkerStatisticsRequest) returns (WorkerStatisticsResponse) {
+    option (api.method) = {
+      id: 1301,
+      path:"worker-statistics",
+      auth: [AUTH_ROLE_ADMIN],
+      ready: true,
+      date: "2024-05-27",
+    };
+  }
+  // 客服接待记录列表
+  rpc WorkerReceptionLogs(WorkerReceptionLogsRequest) returns (WorkerReceptionLogsResponse) {
+    option (api.method) = {
+      id: 1302,
+      path:"worker-reception-logs",
+      auth: [AUTH_ROLE_ADMIN],
+      ready: true,
+      date: "2024-06-21",
+    };
+  }
+  // 导出客服接待记录列表
+  rpc ExportWorkerReceptionLogs(ExportWorkerReceptionLogsRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 1303,
+      path:"export-worker-reception-logs",
+      auth: [AUTH_ROLE_ADMIN],
+      ready: true,
+      date: "2024-06-24",
+    };
+  }
+
+  // 问题配置-问题类型列表
+  rpc QuestionTypes(QuestionTypesRequest) returns (QuestionTypesResponse) {
+    option (api.method) = {
+      id: 2001,
+      path:"question-types",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-03",
+    };
+  }
+
+  // 问题配置-咨询类型问题统计列表
+  rpc ConsultTypeQuestionStats(ConsultTypeQuestionStatsRequest) returns (ConsultTypeQuestionStatsResponse) {
+    option (api.method) = {
+      id: 2003,
+      path:"consult-type-question-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-03",
+    };
+  }
+
+  // 问题配置-咨询类型问题列表
+  rpc ConsultTypeQuestions(ConsultTypeQuestionsRequest) returns (ConsultTypeQuestionsResponse) {
+    option (api.method) = {
+      id: 2004,
+      path:"consult-type-questions",
+      auth: [AUTH_ROLE_ADMIN, AUTH_ROLE_TENANT, AUTH_ROLE_SERVICE]
+      ready: true,
+      date: "2024-07-03",
+    };
+  }
+
+  // 问题配置-添加咨询类型问题
+  rpc AddConsultTypeQuestion(AddConsultTypeQuestionRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 2005,
+      path:"add-consult-type-question",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-03",
+    };
+  }
+
+  // 问题配置-删除咨询类型问题
+  rpc DeleteConsultTypeQuestion(DeleteConsultTypeQuestionRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 2006,
+      path:"delete-consult-type-question",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-03",
+    };
+  }
+
+  // 问题配置-更新咨询类型问题
+  rpc UpdateConsultTypeQuestion(UpdateConsultTypeQuestionRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 2007,
+      path:"update-consult-type-question",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-03",
+    };
+  }
+
+  // 添加问题类型备注(客服平台)
+  rpc AddQuestionTypeRemark(AddQuestionTypeRemarkRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 2008,
+      path:"add-question-type-remark",
+      ready: true,
+      date: "2024-07-04",
+    };
+  }
+
+  // 咨询原文统计列表
+  rpc QuestionTypeRemarks(QuestionTypeRemarksRequest) returns (QuestionTypeRemarksResponse) {
+    option (api.method) = {
+      id: 2009,
+      path:"question-type-remarks",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-04",
+    };
+  }
+
+  // 问题类型详情统计列表
+  rpc QuestionTypeWithWorkerStats(QuestionTypeWithWorkerStatsRequest) returns (QuestionTypeWithWorkerStatsResponse) {
+    option (api.method) = {
+      id: 2010,
+      path:"question-type-with-worker-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-05",
+    };
+  }
+
+  // 客服会话统计列表
+  rpc QuestionTypeRemarkStats(QuestionTypeRemarkStatsRequest) returns (QuestionTypeRemarkStatsResponse) {
+    option (api.method) = {
+      id: 2011,
+      path:"question-type-remark-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-05",
+    };
+  }
+
+  //   客服会话统计列表-查看详情
+  rpc QuestionTypeWorkerRemarkStats(QuestionTypeWorkerRemarkStatsRequest) returns (QuestionTypeWorkerRemarkStatsResponse) {
+    option (api.method) = {
+      id: 2012,
+      path:"question-type-worker-remark-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-15",
+    };
+  }
+
+  // 问题类型统计-咨询类型统计列表
+  rpc ConsultTypeRemarkStats(ConsultTypeRemarkStatsRequest) returns (ConsultTypeRemarkStatsResponse) {
+    option (api.method) = {
+      id: 2013,
+      path:"consult-type-remark-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-05",
+    };
+  }
+
+  // 问题类型统计-咨询类型统计列表-查看详情
+  rpc ConsultTypeWorkerRemarkStats(ConsultTypeWorkerRemarkStatsRequest) returns (ConsultTypeWorkerRemarkStatsResponse) {
+    option (api.method) = {
+      id: 2014,
+      path:"consult-type-worker-remark-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-05",
+    };
+  }
+
+  // 问题类型统计-问题统计列表
+  rpc QuestionTypeStats(QuestionTypeStatsRequest) returns (QuestionTypeStatsResponse) {
+    option (api.method) = {
+      id: 2015,
+      path:"question-type-stats",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-07-05",
+    };
+  }
+
+  // 问题配置-更新问题类型
+  rpc UpdateQuestionType(UpdateQuestionTypeRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 2016,
+      path:"update-question-type",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-08-02",
+    };
+  }
+
+  // 问题配置-删除问题类型
+  rpc DeleteQuestionType(DeleteQuestionTypeRequest) returns (google.protobuf.Empty) {
+    option (api.method) = {
+      id: 2017,
+      path:"delete-question-type",
+      auth: [AUTH_ROLE_ADMIN]
+      ready: true,
+      date: "2024-08-02",
+    };
+  }
+
+    // 问题配置-添加问题类型
+    rpc AddQuestionType(AddQuestionTypeRequest) returns (google.protobuf.Empty) {
+      option (api.method) = {
+        id: 2018,
+        path:"add-question-type",
+        auth: [AUTH_ROLE_ADMIN]
+        ready: true,
+        date: "2024-08-07",
+      };
+    }
+}
