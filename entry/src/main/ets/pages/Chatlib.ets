@@ -4,23 +4,95 @@ import * as CMessage from '../../protots/api/common/c_message';
 import * as GGateway from '../../protots/gateway/g_gateway';
 import * as GPayload from '../../protots/gateway/g_payload';
 import * as GAction from '../../protots/gateway/g_action';
+import { ArrayList, List } from '@kit.ArkTS';
 
 //import { api } from '@api/common/c_device';
 
 // Import necessary libraries for protobuf and WebSocket
-import { listener } from './listener'; //
+//import { listener } from './listener'; //
 // Assuming you have a listener object for callbacks
+
+interface TeneasySDKDelegate {
+  // Received message
+  receivedMsg(msg: CMessage.api.common.Message): void;
+
+  /**
+   * Message receipt
+   * @param msg - Sent message
+   * @param payloadId
+   * @param msgId - If 0, it means the server didn't generate a message ID, meaning sending failed
+   * @param errMsg - Error message
+   */
+  msgReceipt(msg: CMessage.api.common.Message | null, payloadId: number, msgId: number, errMsg: string): void;
+
+  /**
+   * Message deletion receipt
+   * @param msg - Sent message
+   * @param payloadId
+   * @param msgId
+   */
+  msgDeleted(msg: CMessage.api.common.Message | null, payloadId: number, msgId: number): void;
+
+  /**
+   * System message for displaying a tip
+   * @param msg
+   */
+  systemMsg(msg: Result): void;
+
+  /**
+   * Connection success callback
+   * @param SCHi
+   */
+  connected(c: GGateway.gateway.SCHi): void;
+
+  // Work change callback
+  workChanged(msg: GGateway.gateway.SCWorkerChanged): void;
+}
 
 
 export class Chatlib {
+  private TAG: string = "ChatLib";
+  private baseUrl: string = "";
+  public isConnected: boolean = false;
 
-  private token: string | undefined;
-  private payloadId: number | undefined;
-  private isConnected: boolean = false;
-  private chatId: string | undefined;
-  private consultId: string | undefined;
-  private sendingMessage: any;  // Define sendingMessage type properly
-  private msgList: any;  // Define msgList type properly
+  // The current message entity sent
+  public sendingMessage: CMessage.api.common.Message | null = null;
+  private chatId: number = 0;
+  private token: string | null = "";
+  private cert: string | null = "";
+  private userId: number = 0;
+  private mySign: string | null = "";
+  //private socket: WebSocketClient | null = null;
+  public listener: TeneasySDKDelegate | null = null;
+  public payloadId: number = 0;
+  private msgList = new ArrayList<CMessage.api.common.Message>();
+  public replyMsgId: number = 0;
+  public consultId: number = 0;
+  //private heartTimer: any | null = null; // You can replace with a suitable Timer in ArkTS
+  private sessionTime: number = 0;
+  private beatTimes: number = 0;
+  private maxSessionMinutes: number = 9000000; // Set session limits (adjust as needed)
+  private withAutoReply: CMessage.api.common.WithAutoReply | null = null;
+
+  constructor(cert: string, token: string, baseUrl: string = "", userId: number, sign: string, chatID: number = 0) {
+    this.chatId = chatID;
+    if (token.length > 10) {
+      this.token = token;
+    }
+    if (baseUrl.length > 10) {
+      this.baseUrl = baseUrl;
+    }
+
+    this.userId = userId;
+    this.mySign = sign;
+
+    if (cert.length > 10) {
+      this.cert = cert;
+    }
+
+    this.sessionTime = 0;
+    this.beatTimes = 0;
+  }
 
   public connectWebSocket(): void {
     // let defaultIpAddress =
@@ -129,9 +201,9 @@ export class Chatlib {
         case GAction.gateway.Action.ActionSCRecvMsg:
           const recvMsg = GGateway.gateway.SCRecvMessage.deserializeBinary(data);
           if (recvMsg.msg.msg_op === CMessage.api.common.MessageOperate.MSG_OP_DELETE) {
-            listener?.msgDeleted(recvMsg.msg, recvPayload.id, -1);
+            this.listener?.msgDeleted(recvMsg.msg, recvPayload.id, -1);
           } else {
-            listener?.receivedMsg(recvMsg.msg);
+            this.listener?.receivedMsg(recvMsg.msg);
           }
           break;
 
@@ -140,7 +212,7 @@ export class Chatlib {
           this.token = hiMsg.token;
           this.payloadId = recvPayload.id;
           console.log(`Initial payloadId: ${this.payloadId}`);
-          listener?.connected(hiMsg);
+          this.listener?.connected(hiMsg);
           this.isConnected = true;
           this.startTimer();
           break;
@@ -156,38 +228,38 @@ export class Chatlib {
           msg.msg_id = deleteMsgAck.msg_id;
           msg.msg_op = CMessage.api.common.MessageOperate.MSG_OP_DELETE
           console.log(`Delete acknowledgment received: message ID: ${msg.msg_id}`);
-          listener?.msgDeleted(msg, recvPayload.id, -1);
+          this.listener?.msgDeleted(msg, recvPayload.id, -1);
           break;
 
-        case GAction.Action.ActionSCDeleteMsg:
-          const deleteMsg = GGateway.SCRecvMessage.parseFrom(msgData);
-          const msgDelete = CMessage.Message.newBuilder()
-            .setMsgId(deleteMsg.msg.msgId)
-            .setMsgOp(CMessage.MessageOperate.MSG_OP_DELETE)
-            .build();
-          listener?.msgDeleted(msgDelete, recvPayload.id, -1);
+        case GAction.gateway.Action.ActionSCDeleteMsg:
+          const deleteMsg = GGateway.gateway.SCRecvMessage.deserializeBinary(data);
+          const msgDel = new CMessage.api.common.Message();
+          msgDel.msg_id = deleteMsg.msg.chat_id
+          msgDel.msg_op = CMessage.api.common.MessageOperate.MSG_OP_DELETE
+
+          this.listener?.msgDeleted(msgDel, recvPayload.id, -1);
           console.log(`Message deleted by the other party: payload ID ${recvPayload.id}`);
           break;
 
-        case GAction.Action.ActionSCSendMsgACK:
-          const sendMsgAck = GGateway.SCSendMessage.parseFrom(msgData);
-          this.chatId = sendMsgAck.chatId;
+        case GAction.gateway.Action.ActionSCSendMsgACK:
+          const sendMsgAck = GGateway.gateway.SCSendMessage.deserializeBinary(data);
+          this.chatId = sendMsgAck.chat_id;
           console.log("Received message acknowledgment: ActionSCSendMsgACK");
 
           const cMsg = this.msgList[recvPayload.id];
-          if (this.sendingMessage?.msgOp === CMessage.MessageOperate.MSG_OP_DELETE) {
-            listener?.msgDeleted(cMsg, recvPayload.id, -1);
+          if (this.sendingMessage?.msg_op === CMessage.api.common.MessageOperate.MSG_OP_DELETE) {
+            this.listener?.msgDeleted(cMsg, recvPayload.id, -1);
             console.log("Message deleted successfully");
           } else {
-            listener?.msgReceipt(cMsg, recvPayload.id, sendMsgAck.msgId, sendMsgAck.errMsg);
+            this.listener?.msgReceipt(cMsg, recvPayload.id, sendMsgAck.msg_id, sendMsgAck.err_msg);
           }
-          console.log(`Message ID: ${sendMsgAck.msgId}`);
+          console.log(`Message ID: ${sendMsgAck.msg_id}`);
           break;
 
-        case GAction.Action.ActionSCWorkerChanged:
-          const workerChangedMsg = GGateway.SCWorkerChanged.parseFrom(msgData);
-          this.consultId = workerChangedMsg.consultId;
-          listener?.workChanged(workerChangedMsg);
+        case GAction.gateway.Action.ActionSCWorkerChanged:
+          const workerChangedMsg = GGateway.gateway.SCWorkerChanged.deserializeBinary(msgData);
+          this.consultId = workerChangedMsg.consult_id;
+          this.listener?.workChanged(workerChangedMsg);
           break;
 
         default:
@@ -206,7 +278,7 @@ export class Chatlib {
     console.log("Starting connection timer...");
     // Add logic for starting a timer
   }
-}
+
 
 
 // Function to handle closing the WebSocket
