@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "",
     "paths": {
-      "@api/*": ["src/main/protots/api/*"]
+      "@api/*": ["entry/src/main/protots/api/*"]
     }
   }
 }

@@ -6,7 +6,7 @@
 import * as dependency_1 from "./../google/protobuf/timestamp";
 import * as dependency_2 from "./../api/common/c_message";
 import * as dependency_3 from "./../api/common/c_worker";
-import * as dependency_4 from "./../api/common/c_chat";
+import * as dependency_4 from "@api/common/c_chat";
 import * as pb_1 from "google-protobuf";
 export namespace gateway {
     export enum WorkerChangedReason {
