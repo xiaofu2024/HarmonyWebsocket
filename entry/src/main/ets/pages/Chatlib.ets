@@ -1,8 +1,8 @@
 import { webSocket } from '@kit.NetworkKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-
-import { api } from '../../protots/api/common/c_message';
-//import { api } from '@api/common/c_device';
+import * as cmessage from '../../protots/api/common/c_message';
+import * as cgateway from '../../protots/gateway/g_gateway';
+import { api } from '@api/common/c_device';
 
 
 //import { api } from './././protots/api/common/c_device';  // Adjust the path to point to your .ts file
@@ -19,8 +19,10 @@ export class Chatlib {
     let ws = webSocket.createWebSocket()
 
     //let myDevice: api.common.DeviceType = api.common.DeviceType.Android;
-let msg = new api.common.MessageContent()
+let msg = new cmessage.api.common.MessageContent()
     msg.data = ""
+
+   // let g = new cgateway.gateway.SCSendMessage.fromObject(null);
 
     //let d = api.common.;
     // Handle the open connection event
