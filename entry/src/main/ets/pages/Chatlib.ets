@@ -1,5 +1,10 @@
 import { webSocket } from '@kit.NetworkKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { api } from '../../protots/api/common/c_device';
+
+//import { api } from './././protots/api/common/c_device';  // Adjust the path to point to your .ts file
+//import { api } from 'src/main/protots/api/common/c_asset.ts';
+//src/main/ets/pages/Chatlib.ets
 
 export class Chatlib {
 
@@ -10,6 +15,9 @@ export class Chatlib {
    let defaultIpAddress = "wss://echo.websocket.org"
     let ws = webSocket.createWebSocket()
 
+    let myDevice: api.common.DeviceType = api.common.DeviceType.Android;
+
+    //let d = api.common.;
     // Handle the open connection event
     ws.on('open', (err: BusinessError, value: Object) => {
       if (err) {
