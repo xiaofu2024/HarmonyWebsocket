@@ -266,6 +266,7 @@ export class Chatlib {
           console.log(`Received unhandled data: ${data}`);
       }
 
+    }
   }
 
   // Additional methods used in the method, e.g., disConnected and startTimer
