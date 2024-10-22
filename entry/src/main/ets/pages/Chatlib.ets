@@ -65,6 +65,7 @@ export class Chatlib {
   private userId: number = 0;
   private mySign: string | null = "";
   //private socket: WebSocketClient | null = null;
+  private ws = webSocket.createWebSocket()
   public listener: TeneasySDKDelegate | null = null;
   public payloadId: number = 0;
   private msgList = new ArrayList<CMessage.api.common.Message>();
@@ -101,7 +102,7 @@ export class Chatlib {
     // "wss://csapi.hfxg.xyz/v1/gateway/h5?cert=COYBEAUYASDyASiG2piD9zE.te46qua5ha2r-Caz03Vx2JXH5OLSRRV2GqdYcn9UslwibsxBSP98GhUKSGEI0Z84FRMkp16ZK8eS-y72QVE2AQ&token=&userid=666333&ty=104&dt=1714976421667&sign=9zgd9YUc&rd=1672306";
 
     let defaultIpAddress = "wss://echo.websocket.org"
-    let ws = webSocket.createWebSocket()
+
 
     //let myDevice: api.common.DeviceType = api.common.DeviceType.Android;
     let msg = new CMessage.api.common.MessageContent()
@@ -111,7 +112,7 @@ export class Chatlib {
 
     //let d = api.common.;
     // Handle the open connection event
-    ws.on('open', (err: BusinessError, value: Object) => {
+    this.ws.on('open', (err: BusinessError, value: Object) => {
       if (err) {
         console.error("Connection error: " + JSON.stringify(err));
         return;
@@ -119,7 +120,7 @@ export class Chatlib {
       console.log("WebSocket connection opened");
 
       // Send a message after the connection opens
-      ws.send("Hello, server!", (err: BusinessError, value: boolean) => {
+      this.ws.send("Hello, server!", (err: BusinessError, value: boolean) => {
         if (err) {
           console.error("Send fail, err: " + JSON.stringify(err));
         } else {
@@ -129,7 +130,7 @@ export class Chatlib {
     });
 
     // Handle incoming messages from the server
-    ws.on('message', (err: BusinessError, value: string | ArrayBuffer) => {
+    this.ws.on('message', (err: BusinessError, value: string | ArrayBuffer) => {
       if (err) {
         console.error("Message error: " + JSON.stringify(err));
         return;
@@ -144,7 +145,7 @@ export class Chatlib {
     });
 
     // Handle the close event
-    ws.on('close', (err: BusinessError, value: webSocket.CloseResult) => {
+    this.ws.on('close', (err: BusinessError, value: webSocket.CloseResult) => {
       if (err) {
         console.error("Close event error: " + JSON.stringify(err));
       } else {
@@ -153,13 +154,13 @@ export class Chatlib {
     });
 
     // Handle WebSocket errors
-    ws.on('error', (err: BusinessError) => {
+    this.ws.on('error', (err: BusinessError) => {
       console.error("WebSocket error: " + JSON.stringify(err));
     });
 
 
     // Connect to the WebSocket server
-    ws.connect(defaultIpAddress, {}, (err: BusinessError, value: boolean) => {
+    this.ws.connect(defaultIpAddress, {}, (err: BusinessError, value: boolean) => {
       if (err) {
         console.error("Connection fail, err: " + JSON.stringify(err));
       } else {
@@ -329,6 +330,14 @@ export class Chatlib {
     }
     let binaryData = payLoad.serializeBinary()
     //send(binaryData: binaryData)
+    // Send a message after the connection opens
+    this.ws.send(binaryData, (err: BusinessError, value: boolean) => {
+      if (err) {
+        console.error("Send fail, err: " + JSON.stringify(err));
+      } else {
+        console.log("Send success");
+      }
+    });
   }
 
   // Additional methods used in the method, e.g., disConnected and startTimer
@@ -346,7 +355,7 @@ export class Chatlib {
 
 // Function to handle closing the WebSocket
   private closeWebSocket(ws: webSocket.WebSocket): void {
-    ws.close((err: BusinessError, value: boolean) => {
+    this.ws.close((err: BusinessError, value: boolean) => {
       if (err) {
         console.error("Close fail, err: " + JSON.stringify(err));
       } else {
