@@ -98,19 +98,10 @@ export class Chatlib {
   }
 
   public connectWebSocket(): void {
-    // let defaultIpAddress =
-    // "wss://csapi.hfxg.xyz/v1/gateway/h5?cert=COYBEAUYASDyASiG2piD9zE.te46qua5ha2r-Caz03Vx2JXH5OLSRRV2GqdYcn9UslwibsxBSP98GhUKSGEI0Z84FRMkp16ZK8eS-y72QVE2AQ&token=&userid=666333&ty=104&dt=1714976421667&sign=9zgd9YUc&rd=1672306";
+    //let defaultIpAddress = "wss://csapi.hfxg.xyz/v1/gateway/h5?cert=COYBEAUYASDyASiG2piD9zE.te46qua5ha2r-Caz03Vx2JXH5OLSRRV2GqdYcn9UslwibsxBSP98GhUKSGEI0Z84FRMkp16ZK8eS-y72QVE2AQ&token=&userid=666333&ty=104&dt=1714976421667&sign=9zgd9YUc&rd=1672306";
+    let defaultIpAddress = this.baseUrl + "?cert=" + this.cert + "&token=" + this.token + "&userid=" + this.userId +"&ty=104&dt=1714976421667&sign=9zgd9YUc&rd=1672306";
+    //let defaultIpAddress = "wss://echo.websocket.org"
 
-    let defaultIpAddress = "wss://echo.websocket.org"
-
-
-    //let myDevice: api.common.DeviceType = api.common.DeviceType.Android;
-    let msg = new CMessage.api.common.MessageContent()
-    msg.data = ""
-
-    // let g = new cgateway.gateway.SCSendMessage.fromObject(null);
-
-    //let d = api.common.;
     // Handle the open connection event
     this.ws.on('open', (err: BusinessError, value: Object) => {
       if (err) {
@@ -140,7 +131,7 @@ export class Chatlib {
 
       // If the message is 'bye', close the WebSocket
       if (value === 'bye') {
-        this.closeWebSocket(ws);
+        this.closeWebSocket(this.ws);
       }
     });
 
