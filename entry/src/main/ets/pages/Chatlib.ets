@@ -293,6 +293,49 @@ export class Chatlib {
     this.sendingMessage = msg
   }
 
+  private sendImageMessage(txt: string){
+    // 第一层
+    let content = new CMessage.api.common.MessageImage()
+    content.uri = txt
+
+    // 第二层, 消息主题
+    let msg = new CMessage.api.common.Message()
+    msg.consult_id = this.consultId
+    msg.image = content
+    msg.sender = 0
+    //msg.payload = GPayload.gateway.Payload.Com
+    msg.reply_msg_id = this.replyMsgId
+    msg.chat_id = this.chatId
+    msg.worker = 0
+
+    msg.msg_time.seconds = Date.now() * 0.001;
+
+    // 临时放到一个变量
+    this.sendingMessage = msg
+  }
+
+
+  private sendVideoMessage(txt: string){
+    // 第一层
+    let content = new CMessage.api.common.MessageVideo()
+    content.uri = txt
+
+    // 第二层, 消息主题
+    let msg = new CMessage.api.common.Message()
+    msg.consult_id = this.consultId
+    msg.video = content
+    msg.sender = 0
+    //msg.payload = GPayload.gateway.Payload.Com
+    msg.reply_msg_id = this.replyMsgId
+    msg.chat_id = this.chatId
+    msg.worker = 0
+
+    msg.msg_time.seconds = Date.now() * 0.001;
+
+    // 临时放到一个变量
+    this.sendingMessage = msg
+  }
+
   private doSend(payload_Id: number = 0){
 
     if (this.sendingMessage == null){
@@ -314,14 +357,11 @@ export class Chatlib {
     payLoad.data = cSendMsgData
     payLoad.act = GAction.gateway.Action.ActionCSSendMsg
 
-
-
     //payload_id != 0的时候，可能是重发，重发不需要+1
     if (this.sendingMessage.msg_op == CMessage.api.common.MessageOperate.MSG_OP_POST){
       this.payloadId += 1
       this.msgList[this.payloadId] = this.sendingMessage;
     }
-
 
     if (payload_Id != 0){
       payLoad.id = payload_Id
