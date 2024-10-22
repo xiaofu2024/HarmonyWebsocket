@@ -109,15 +109,6 @@ export class Chatlib {
         return;
       }
       console.log("WebSocket connection opened");
-
-      // Send a message after the connection opens
-      this.ws.send("Hello, server!", (err: BusinessError, value: boolean) => {
-        if (err) {
-          console.error("Send fail, err: " + JSON.stringify(err));
-        } else {
-          console.log("Send success");
-        }
-      });
     });
 
     // Handle incoming messages from the server
@@ -128,6 +119,16 @@ export class Chatlib {
       }
       console.log("Received message: " + value);
 
+      let uint8Array: Uint8Array;
+
+      if (typeof value === 'string') {
+        //let encoder = new TextEncoder();
+        //uint8Array = encoder.encode(value);
+      } else if (value instanceof ArrayBuffer) {
+        // Convert ArrayBuffer to Uint8Array
+        uint8Array = new Uint8Array(value);
+        this.receiveMsg(uint8Array)
+      }
 
       // If the message is 'bye', close the WebSocket
       if (value === 'bye') {
@@ -142,13 +143,13 @@ export class Chatlib {
       } else {
         console.log(`Connection closed with code: ${value.code}, reason: ${value.reason}`);
       }
+      this.isConnected = false
     });
 
     // Handle WebSocket errors
     this.ws.on('error', (err: BusinessError) => {
       console.error("WebSocket error: " + JSON.stringify(err));
     });
-
 
     // Connect to the WebSocket server
     this.ws.connect(defaultIpAddress, {}, (err: BusinessError, value: boolean) => {
@@ -158,9 +159,7 @@ export class Chatlib {
         console.log("Connection successful");
       }
     });
-
   }
-
 
   public receiveMsg(data: Uint8Array): void {
     // If the data has a length of 1 byte, we treat it as a specific signal
@@ -261,6 +260,29 @@ export class Chatlib {
       }
 
     }
+  }
+
+  public sendMessage(msg: string, type: CMessage.api.common.MessageFormat, consultId: number, replyMsgId: number = 0, withAutoReply: CMessage.api.common.WithAutoReply): void {
+    this.replyMsgId = replyMsgId || 0;
+    this.consultId = consultId;
+    this.withAutoReply = withAutoReply;
+    // Message sending encapsulation, four layers
+    // payload -> CSSendMessage -> common message -> CommonMessageContent
+    switch (type) {
+      case CMessage.api.common.MessageFormat.MSG_TEXT:
+        this.sendTextMessage(msg);
+        break;
+      case CMessage.api.common.MessageFormat.MSG_IMG:
+        this.sendImageMessage(msg);
+        break;
+      case CMessage.api.common.MessageFormat.MSG_VIDEO:
+        this.sendVideoMessage(msg);
+        break;
+      default:
+        this.sendTextMessage(msg);
+        break;
+    }
+    this.doSend();
   }
 
   private sendTextMessage(txt: string){
