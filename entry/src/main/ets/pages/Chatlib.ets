@@ -5,6 +5,8 @@ import * as GGateway from '../../protots/gateway/g_gateway';
 import * as GPayload from '../../protots/gateway/g_payload';
 import * as GAction from '../../protots/gateway/g_action';
 import { ArrayList, List } from '@kit.ArkTS';
+import { Action } from '@kit.InputKit';
+import { gateway } from '../../protots/gateway/g_payload';
 
 //import { api } from '@api/common/c_device';
 
@@ -269,70 +271,64 @@ export class Chatlib {
     }
   }
 
-  private sendTextMessage(txt: String){
+  private sendTextMessage(txt: string){
     // 第一层
-    var content = new CommonMessageContent()
+    let content = new CMessage.api.common.MessageContent()
     content.data = txt
 
     // 第二层, 消息主题
-    var msg = new CommonMessage()
-    msg.consultID = self.consultId
+    let msg = new CMessage.api.common.Message()
+    msg.consult_id = this.consultId
     msg.content = content
     msg.sender = 0
-    msg.replyMsgID = self.replyMsgId
-    msg.chatID = chatId
-    msg.payload = content
-    msg.worker = workId
+    //msg.payload = GPayload.gateway.Payload.Com
+    msg.reply_msg_id = this.replyMsgId
+    msg.chat_id = this.chatId
+    msg.worker = 0
 
-    msg.msgTime.seconds = Int64(Date().timeIntervalSince1970)
+    msg.msg_time.seconds = Date.now() * 0.001;
 
     // 临时放到一个变量
-    sendingMessage = msg
+    this.sendingMessage = msg
   }
 
-  private doSend(payload_Id: UInt64 = 0){
+  private doSend(payload_Id: number = 0){
 
-    if (sendingMessage == null){
+    if (this.sendingMessage == null){
       return
     }
 
-    if (self.withAutoReply != null){
-      // if msgList.count == 0{
-      let withAutoReplies = Array(arrayLiteral: w)
-      msg.withAutoReplies = withAutoReplies
-      //}
+    if (this.withAutoReply != null){
+      this.sendingMessage.with_auto_replies.push(this.withAutoReply)
     }
 
     // 第三层
-    var cSendMsg = new Gateway_CSSendMessage()
-    cSendMsg.msg = msg
+    let cSendMsg = new GGateway.gateway.CSSendMessage()
+    cSendMsg.msg = this.sendingMessage
     // Serialize to binary protobuf format:
-    var cSendMsgData = cSendMsg
+    let cSendMsgData = cSendMsg.serializeBinary()
 
     // 第四层
-    var payLoad = Gateway_Payload()
+    let payLoad = new GPayload.gateway.Payload()
     payLoad.data = cSendMsgData
+    payLoad.act = GAction.gateway.Action.ActionCSSendMsg
 
-    //        if msg.msgOp == .msgOpDelete{
-    //            payLoad.act = .csdeleteMsg
-    //        }else{
-    payLoad.act = .cssendMsg
-    //}
+
 
     //payload_id != 0的时候，可能是重发，重发不需要+1
-    if (sendingMsg?.msgOp == .msgOpPost && payload_Id == 0){
-      payloadId += 1
-      print("ChatLib:payloadID + 1:" + String(payloadId))
-      msgList[payloadId] = msg
+    if (this.sendingMessage.msg_op == CMessage.api.common.MessageOperate.MSG_OP_POST){
+      this.payloadId += 1
+      this.msgList[this.payloadId] = this.sendingMessage;
     }
 
-    if payload_Id != 0{
+
+    if (payload_Id != 0){
       payLoad.id = payload_Id
     }else{
-      payLoad.id = payloadId
+      payLoad.id = this.payloadId
     }
-    let binaryData: Data = try! payLoad.serializedData()
-    send(binaryData: binaryData)
+    let binaryData = payLoad.serializeBinary()
+    //send(binaryData: binaryData)
   }
 
   // Additional methods used in the method, e.g., disConnected and startTimer
@@ -385,4 +381,8 @@ export class Chatlib {
           })
     })
   }
+}
+
+function Int64(timeIntervalSince1970: undefined): number {
+  throw new Error('Function not implemented.');
 }
