@@ -269,6 +269,72 @@ export class Chatlib {
     }
   }
 
+  private sendTextMessage(txt: String){
+    // 第一层
+    var content = new CommonMessageContent()
+    content.data = txt
+
+    // 第二层, 消息主题
+    var msg = new CommonMessage()
+    msg.consultID = self.consultId
+    msg.content = content
+    msg.sender = 0
+    msg.replyMsgID = self.replyMsgId
+    msg.chatID = chatId
+    msg.payload = content
+    msg.worker = workId
+
+    msg.msgTime.seconds = Int64(Date().timeIntervalSince1970)
+
+    // 临时放到一个变量
+    sendingMessage = msg
+  }
+
+  private doSend(payload_Id: UInt64 = 0){
+
+    if (sendingMessage == null){
+      return
+    }
+
+    if (self.withAutoReply != null){
+      // if msgList.count == 0{
+      let withAutoReplies = Array(arrayLiteral: w)
+      msg.withAutoReplies = withAutoReplies
+      //}
+    }
+
+    // 第三层
+    var cSendMsg = new Gateway_CSSendMessage()
+    cSendMsg.msg = msg
+    // Serialize to binary protobuf format:
+    var cSendMsgData = cSendMsg
+
+    // 第四层
+    var payLoad = Gateway_Payload()
+    payLoad.data = cSendMsgData
+
+    //        if msg.msgOp == .msgOpDelete{
+    //            payLoad.act = .csdeleteMsg
+    //        }else{
+    payLoad.act = .cssendMsg
+    //}
+
+    //payload_id != 0的时候，可能是重发，重发不需要+1
+    if (sendingMsg?.msgOp == .msgOpPost && payload_Id == 0){
+      payloadId += 1
+      print("ChatLib:payloadID + 1:" + String(payloadId))
+      msgList[payloadId] = msg
+    }
+
+    if payload_Id != 0{
+      payLoad.id = payload_Id
+    }else{
+      payLoad.id = payloadId
+    }
+    let binaryData: Data = try! payLoad.serializedData()
+    send(binaryData: binaryData)
+  }
+
   // Additional methods used in the method, e.g., disConnected and startTimer
   private disConnected(code: number, reason: string): void {
     console.log(`Disconnected: ${code}, Reason: ${reason}`);
