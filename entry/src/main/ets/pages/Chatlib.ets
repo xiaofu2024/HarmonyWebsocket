@@ -5,14 +5,26 @@ import * as GGateway from '../../protots/gateway/g_gateway';
 import * as GPayload from '../../protots/gateway/g_payload';
 import * as GAction from '../../protots/gateway/g_action';
 import { ArrayList, List } from '@kit.ArkTS';
-import { Action } from '@kit.InputKit';
-import { gateway } from '../../protots/gateway/g_payload';
 
-//import { api } from '@api/common/c_device';
+class Result<T> {
+  public code: number = 0;
+  public msg: string = "";
+  public data: T | null = null;
 
-// Import necessary libraries for protobuf and WebSocket
-//import { listener } from './listener'; //
-// Assuming you have a listener object for callbacks
+  /*
+  constructor(code?: number, msg?: string, data?: T | null) {
+    if (code !== undefined) {
+      this.code = code;
+    }
+    if (msg !== undefined) {
+      this.msg = msg;
+    }
+    if (data !== undefined) {
+      this.data = data;
+    }
+  }*/
+}
+
 
 interface TeneasySDKDelegate {
   // Received message
@@ -39,7 +51,7 @@ interface TeneasySDKDelegate {
    * System message for displaying a tip
    * @param msg
    */
-  systemMsg(msg: Result): void;
+  systemMsg(msg: Result<null>): void;
 
   /**
    * Connection success callback
@@ -53,7 +65,7 @@ interface TeneasySDKDelegate {
 
 
 export class Chatlib {
-  private TAG: string = "ChatLib";
+  private TAG: string = "ChatLib ";
   private baseUrl: string = "";
   public isConnected: boolean = false;
 
@@ -68,7 +80,8 @@ export class Chatlib {
   private ws = webSocket.createWebSocket()
   public listener: TeneasySDKDelegate | null = null;
   public payloadId: number = 0;
-  private msgList = new ArrayList<CMessage.api.common.Message>();
+  private msgList: Map<number, CMessage.api.common.Message> = new Map();
+
   public replyMsgId: number = 0;
   public consultId: number = 0;
   //private heartTimer: any | null = null; // You can replace with a suitable Timer in ArkTS
@@ -105,7 +118,7 @@ export class Chatlib {
     // Handle the open connection event
     this.ws.on('open', (err: BusinessError, value: Object) => {
       if (err) {
-        console.error("Connection error: " + JSON.stringify(err));
+        console.error(this.TAG + "Connection error: " + JSON.stringify(err));
         return;
       }
       console.log("WebSocket connection opened");
@@ -195,7 +208,9 @@ export class Chatlib {
           const recvMsg = GGateway.gateway.SCRecvMessage.deserializeBinary(data);
           if (recvMsg.msg.msg_op === CMessage.api.common.MessageOperate.MSG_OP_DELETE) {
             this.listener?.msgDeleted(recvMsg.msg, recvPayload.id, -1);
+            console.log(`收到撤回消息`);
           } else {
+            console.log(`收到消息`);
             this.listener?.receivedMsg(recvMsg.msg);
           }
           break;
@@ -239,20 +254,26 @@ export class Chatlib {
           this.chatId = sendMsgAck.chat_id;
           console.log("Received message acknowledgment: ActionSCSendMsgACK");
 
-          const cMsg = this.msgList[recvPayload.id];
-          if (this.sendingMessage?.msg_op === CMessage.api.common.MessageOperate.MSG_OP_DELETE) {
-            this.listener?.msgDeleted(cMsg, recvPayload.id, -1);
-            console.log("Message deleted successfully");
-          } else {
-            this.listener?.msgReceipt(cMsg, recvPayload.id, sendMsgAck.msg_id, sendMsgAck.err_msg);
+          const cMsg = this.msgList.get(recvPayload.id);
+          console.log(`收到回执 Message ID: ${sendMsgAck.msg_id}`);
+
+          if (cMsg != null) {
+            if (this.sendingMessage?.msg_op === CMessage.api.common.MessageOperate.MSG_OP_DELETE) {
+              this.listener?.msgDeleted(cMsg, recvPayload.id, -1);
+              console.log("Message deleted successfully");
+            } else {
+              this.listener?.msgReceipt(cMsg, recvPayload.id, sendMsgAck.msg_id, sendMsgAck.err_msg);
+            }
+          }else{
+            console.log(`消息列表异常`);
           }
-          console.log(`Message ID: ${sendMsgAck.msg_id}`);
           break;
 
         case GAction.gateway.Action.ActionSCWorkerChanged:
           const workerChangedMsg = GGateway.gateway.SCWorkerChanged.deserializeBinary(msgData);
           this.consultId = workerChangedMsg.consult_id;
           this.listener?.workChanged(workerChangedMsg);
+          console.log(`客服已改变，workerId：` + workerChangedMsg.worker_id);
           break;
 
         default:
