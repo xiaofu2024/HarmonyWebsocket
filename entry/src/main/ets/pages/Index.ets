@@ -10,9 +10,7 @@ struct Index {
       Column() {
         Text(this.message)
           .onClick(()=>{
-            //
-            let chat = new Chatlib();
-            let d = chat.connectWebSocket();
+
           })
           .fontSize(50)
           .fontWeight(FontWeight.Bold)

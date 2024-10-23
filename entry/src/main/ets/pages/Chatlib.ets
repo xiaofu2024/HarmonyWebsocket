@@ -6,7 +6,7 @@ import * as GPayload from '../../protots/gateway/g_payload';
 import * as GAction from '../../protots/gateway/g_action';
 import { ArrayList, List } from '@kit.ArkTS';
 
-class Result<T> {
+export class Result<T> {
   public code: number = 0;
   public msg: string = "";
   public data: T | null = null;
