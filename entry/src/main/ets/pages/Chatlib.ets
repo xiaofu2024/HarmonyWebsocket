@@ -6,7 +6,7 @@ import * as GPayload from '../../protots/gateway/g_payload';
 import * as GAction from '../../protots/gateway/g_action';
 import { ArrayList, List } from '@kit.ArkTS';
 
-export class Result<T> {
+export class Resp<T> {
   public code: number = 0;
   public msg: string = "";
   public data: T | null = null;
@@ -51,7 +51,7 @@ interface TeneasySDKDelegate {
    * System message for displaying a tip
    * @param msg
    */
-  systemMsg(msg: Result<null>): void;
+  systemMsg(msg: Resp<null>): void;
 
   /**
    * Connection success callback

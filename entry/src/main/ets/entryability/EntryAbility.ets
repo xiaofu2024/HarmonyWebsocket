@@ -1,7 +1,7 @@
 import { AbilityConstant, StartupListener, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
-import { Chatlib } from '../pages/Chatlib';
+import { Chatlib, Resp } from '../pages/Chatlib';
 import * as CMessage from '../../protots/api/common/c_message';
 import * as GGateway from '../../protots/gateway/g_gateway';
 import * as GPayload from '../../protots/gateway/g_payload';
@@ -80,8 +80,12 @@ export default class EntryAbility extends UIAbility {
    * System message for displaying a tip
    * @param msg
    */
-  systemMsg(msg: Chatlib.Result<null>): void{
+  systemMsg(msg: Resp<null>): void{
+    if (msg.code == 1002 || msg.code == 1010 || msg.code == 1005){
 
+    }else{
+      console.log("已断开")
+    }
   }
 
   /**
