@@ -1,7 +1,7 @@
 import { AbilityConstant, StartupListener, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
-import { Chatlib, Resp } from '../pages/Chatlib';
+import { Chatlib, Resp } from '../lib/Chatlib';
 import * as CMessage from '../../protots/api/common/c_message';
 import * as GGateway from '../../protots/gateway/g_gateway';
 import * as GPayload from '../../protots/gateway/g_payload';

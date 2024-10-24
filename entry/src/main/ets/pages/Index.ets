@@ -1,4 +1,3 @@
-import { Chatlib } from './Chatlib'
 
 @Entry
 @Component
