@@ -4,14 +4,12 @@ import * as CMessage from '../../protots/api/common/c_message';
 import * as GGateway from '../../protots/gateway/g_gateway';
 import * as GPayload from '../../protots/gateway/g_payload';
 import * as GAction from '../../protots/gateway/g_action';
-import { ArrayList, List } from '@kit.ArkTS';
-
+import { ArrayList, JSON, List } from '@kit.ArkTS';
 export class Resp<T> {
   public code: number = 0;
   public msg: string = "";
   public data: T | null = null;
 
-  /*
   constructor(code?: number, msg?: string, data?: T | null) {
     if (code !== undefined) {
       this.code = code;
@@ -22,8 +20,9 @@ export class Resp<T> {
     if (data !== undefined) {
       this.data = data;
     }
-  }*/
+  }
 }
+
 
 
 interface TeneasySDKDelegate {

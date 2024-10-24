@@ -1,8 +1,17 @@
 import http from '@ohos.net.http';
+import { Chatlib, Resp } from '../lib/Chatlib';
+import JSONUtils from './JsonUtils';
+import { TestModel } from './TestModel';
+import { ParsedUrl } from './ParsedUrl'
 
 interface LineDetectDelegate {
   useTheLine(line: string): void;
   lineError(error: Result): void;
+}
+
+interface GeneratedObjectLiteralInterface_1 {
+  "Content-Type": string;
+  "x-trace-id": string;
 }
 
 export class LineDetectLib {
@@ -10,9 +19,10 @@ export class LineDetectLib {
   private urlList: string[] = [];
    static usedLine = false;
    static retryTimes = 0;
-  private bodyStr: { [key: string]: string } = {};
+  private bodyStr = "";
+  //private bodyStr: { [key: string]: string } = {};
   //private bodyStr: Map<string, string> = new Map();
-  private bodyStr: Json = new Json();
+ // private bodyStr: Json = new Json();
   private tenantId: number;
 
 
@@ -29,29 +39,31 @@ export class LineDetectLib {
   public getLine(): void {
     let foundLine = false;
     let myStep2Index = 0;
-    this.bodyStr = { "gnsId": "wcs", "tenantId": 'tenantId' };
+    this.bodyStr ='{ "gnsId": "wcs", "tenantId": "${this.tenantId}" }';
     for (const txtUrl of this.urlList) {
       if (LineDetectLib.usedLine) break;
       if (foundLine) break;
 
-      const url = this.checkUrl(`${txtUrl}/v1/api/verify`);
+      const urlString = this.checkUrl(`${txtUrl}/v1/api/verify`);
+      //const urlString = "https://example.com/path?name=John&age=30";
+      const url =  ParsedUrl.parse(urlString)
+
       if (!url) {
         console.debug(`Invalid URL: ${txtUrl}`);
         continue;
       }
 
       const uuid = this.generateUUID();
-      const headers = {
+      const headers: GeneratedObjectLiteralInterface_1 = {
         "Content-Type": "application/json",
         "x-trace-id": uuid,
       };
 
       const httpRequest = http.createHttp();
-      //let jsonStr: string = '{"gnsId": "wcs", "tenantId": "12345"}';
-
-      //let jsonObject = JSON.parse(jsonStr);
+      this.bodyStr = `{"gnsId": "wcs", "tenantId": "${txtUrl}"}`;
+      //let jsonObject: JSON = JSON.parse(this.bodyStr);
       httpRequest.request(
-        url,
+        urlString,
         {
           method: http.RequestMethod.POST,
           extraData: this.bodyStr,
@@ -66,15 +78,18 @@ export class LineDetectLib {
               this.failedAndRetry();
             }
           } else {
-            if (data != null) {
-              //let responseBody = JSON.parse(data);
-              if (responseBody.tenantId === this.tenantId) {
+            if (data != null && data.result != null) {
+              let responseBody: JSON = JSON.parse(data.result.toString());
+
+              let dataBean = JSONUtils.json2Bean(TestModel, data.result.toString());
+
+              if (dataBean?.code == 0) {
                 foundLine = true;
 
                 if (!LineDetectLib.usedLine) {
                   LineDetectLib.usedLine = true;
-                  let line = data.url;
-                  const port = data.request.url.port;
+                  let line = url.hostname;
+                  const port = Number.parseInt(url.hostname.toString());
                   if (port && port !== 80 && port !== 443) {
                     line = `${line}:${port}`;
                   }
