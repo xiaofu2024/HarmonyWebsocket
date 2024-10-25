@@ -1,13 +1,16 @@
 import http from '@ohos.net.http';
-import { Chatlib, Resp } from '../lib/Chatlib';
+import { Chatlib } from '../lib/Chatlib';
 import JSONUtils from './JsonUtils';
 import { TestModel } from './TestModel';
 import { ParsedUrl } from './ParsedUrl'
+import { HashMap } from '@kit.ArkTS';
 
 interface LineDetectDelegate {
   useTheLine(line: string): void;
   lineError(error: Result): void;
 }
+
+
 
 interface GeneratedObjectLiteralInterface_1 {
   "Content-Type": string;
@@ -24,7 +27,7 @@ export class LineDetectLib {
   //private bodyStr: Map<string, string> = new Map();
  // private bodyStr: Json = new Json();
   private tenantId: number;
-
+  headers = new HashMap<string, string>()
 
   constructor(urlStrings: string, delegate: LineDetectDelegate | null = null, tenantId: number) {
     this.delegate = delegate;
@@ -33,7 +36,6 @@ export class LineDetectLib {
     LineDetectLib.retryTimes = 0;
     this.tenantId = tenantId;
     //"wcs", tenantId
-
   }
 
   public getLine(): void {
@@ -54,10 +56,12 @@ export class LineDetectLib {
       }
 
       const uuid = this.generateUUID();
-      const headers: GeneratedObjectLiteralInterface_1 = {
-        "Content-Type": "application/json",
-        "x-trace-id": uuid,
-      };
+      this.headers["Content-Type"] = "application/json"
+      this.headers["x-trace-id"] = uuid
+      // const headers: GeneratedObjectLiteralInterface_1 = {
+      //   "Content-Type": "application/json",
+      //   "x-trace-id": uuid,
+      // };
 
       const httpRequest = http.createHttp();
       this.bodyStr = `{"gnsId": "wcs", "tenantId": "${this.tenantId}"}`;
@@ -67,7 +71,7 @@ export class LineDetectLib {
         {
           method: http.RequestMethod.POST,
           extraData: this.bodyStr,
-          header: headers,
+          header: this.headers,
           connectTimeout: 60000,
         },
         (err, data) => {
