@@ -39,7 +39,7 @@ export class LineDetectLib {
   public getLine(): void {
     let foundLine = false;
     let myStep2Index = 0;
-    this.bodyStr ='{ "gnsId": "wcs", "tenantId": "${this.tenantId}" }';
+    //this.bodyStr ='{ "gnsId": "wcs", "tenantId": "${this.tenantId}" }';
     for (const txtUrl of this.urlList) {
       if (LineDetectLib.usedLine) break;
       if (foundLine) break;
@@ -60,7 +60,7 @@ export class LineDetectLib {
       };
 
       const httpRequest = http.createHttp();
-      this.bodyStr = `{"gnsId": "wcs", "tenantId": "${txtUrl}"}`;
+      this.bodyStr = `{"gnsId": "wcs", "tenantId": "${this.tenantId}"}`;
       //let jsonObject: JSON = JSON.parse(this.bodyStr);
       httpRequest.request(
         urlString,
@@ -79,9 +79,9 @@ export class LineDetectLib {
             }
           } else {
             if (data != null && data.result != null) {
-              let responseBody: JSON = JSON.parse(data.result.toString());
+              //let responseBody: JSON = JSON.parse(data.result.toString());
 
-              let dataBean = JSONUtils.json2Bean(TestModel, data.result.toString());
+              let dataBean = JSONUtils.json2Bean<TestModel>(TestModel, data.result.toString());
 
               if (dataBean?.code == 0) {
                 foundLine = true;
