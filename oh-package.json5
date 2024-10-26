@@ -1,6 +1,6 @@
 {
   "modelVersion": "5.0.0",
-  "description": "Please describe the basic information.",
+  "description": "This chat sdk developed for Teneasy customer support system.",
   "dependencies": {
     "class-transformer": "^0.5.1"
   },
