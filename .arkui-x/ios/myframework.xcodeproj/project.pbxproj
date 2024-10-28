@@ -14,6 +14,11 @@
 		22FAD50429F12BFA00729313 /* arkui-x in Resources */ = {isa = PBXBuildFile; fileRef = 22FAD50329F12BF900729313 /* arkui-x */; };
 		22FAD50629F12CA500729313 /* EntryEntryAbilityViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 22FAD50529F12CA400729313 /* EntryEntryAbilityViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		22FAD50829F12CAB00729313 /* EntryEntryAbilityViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FAD50729F12CAB00729313 /* EntryEntryAbilityViewController.m */; };
+		2A13EF7C964EDE9C0A024698 /* libnet_utils.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79F6127235ACE5C4ED0E6CDC /* libnet_utils.xcframework */; };
+		B33EB99E196A213C4C24557C /* libcrypto_openssl.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7846F877D401C8529985E7B /* libcrypto_openssl.xcframework */; };
+		1882646AB12AF3A2F196091D /* libssl_openssl.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64762E2C31D5DD45CE60C4C0 /* libssl_openssl.xcframework */; };
+		35BA768CAE495018AF67EF73 /* libnet_websocket.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 909ED1F13DAACCE152787EA6 /* libnet_websocket.xcframework */; };
+		936DFE0BB95D4AFC6D8E52A1 /* libhilog.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D6E65DE05606E4D81C20207F /* libhilog.xcframework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +30,11 @@
 		22FAD50329F12BF900729313 /* arkui-x */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "arkui-x"; sourceTree = "<group>"; };
 		22FAD50529F12CA400729313 /* EntryEntryAbilityViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryEntryAbilityViewController.h; sourceTree = "<group>"; };
 		22FAD50729F12CAB00729313 /* EntryEntryAbilityController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path =EntryEntryAbilityViewController.m; sourceTree = "<group>"; };
+		79F6127235ACE5C4ED0E6CDC /* libnet_utils.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libnet_utils.xcframework; path = frameworks/libnet_utils.xcframework; sourceTree = "<group>"; };
+		F7846F877D401C8529985E7B /* libcrypto_openssl.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libcrypto_openssl.xcframework; path = frameworks/libcrypto_openssl.xcframework; sourceTree = "<group>"; };
+		64762E2C31D5DD45CE60C4C0 /* libssl_openssl.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libssl_openssl.xcframework; path = frameworks/libssl_openssl.xcframework; sourceTree = "<group>"; };
+		909ED1F13DAACCE152787EA6 /* libnet_websocket.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libnet_websocket.xcframework; path = frameworks/libnet_websocket.xcframework; sourceTree = "<group>"; };
+		D6E65DE05606E4D81C20207F /* libhilog.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libhilog.xcframework; path = frameworks/libhilog.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +42,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2A13EF7C964EDE9C0A024698 /* libnet_utils.xcframework in Frameworks */,
+				B33EB99E196A213C4C24557C /* libcrypto_openssl.xcframework in Frameworks */,
+				1882646AB12AF3A2F196091D /* libssl_openssl.xcframework in Frameworks */,
+				35BA768CAE495018AF67EF73 /* libnet_websocket.xcframework in Frameworks */,
+				936DFE0BB95D4AFC6D8E52A1 /* libhilog.xcframework in Frameworks */,
 				22FAD50229F12AFC00729313 /* libarkui_ios.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,6 +88,11 @@
 			isa = PBXGroup;
 			children = (
 				22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */,
+				79F6127235ACE5C4ED0E6CDC /* libnet_utils.xcframework */,
+				F7846F877D401C8529985E7B /* libcrypto_openssl.xcframework */,
+				64762E2C31D5DD45CE60C4C0 /* libssl_openssl.xcframework */,
+				909ED1F13DAACCE152787EA6 /* libnet_websocket.xcframework */,
+				D6E65DE05606E4D81C20207F /* libhilog.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
