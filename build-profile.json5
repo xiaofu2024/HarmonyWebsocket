@@ -3,17 +3,26 @@
     //工程的签名信息，可包含多个签名信息
     "signingConfigs": [
       {
-        "name": "default",  //标识签名方案的名称，用户可自定义
-        "type": "HarmonyOS",  //标识 HarmonyOS 应用
+        "name": "default",
+        //标识签名方案的名称，用户可自定义
+        "type": "HarmonyOS",
+        //标识 HarmonyOS 应用
         //该方案的签名材料
         "material": {
-          "certpath": "/Users/xuefeng/Library/CloudStorage/GoogleDrive-xuefengtech.i@gmail.com/My Drive/KeyStore/Harmony/qchatcsr.csr",  //调试或发布证书文件，格式为.cer
-          "storePassword": "teneasy-123",  //密钥库密码，以密文形式呈现
-          "keyAlias": "key0",  //密钥别名信息
-          "keyPassword": "teneasy-123",  //密钥密码，以密文形式呈现
-          "profile": "D:\\SigningConfig\\debug_hos.p7b",  //调试或发布证书 Profile文件，格式为.p7b
-          "signAlg": "SHA256withECDSA",  //密钥库signAlg参数
-          "storeFile": "/Users/xuefeng/Library/CloudStorage/GoogleDrive-xuefengtech.i@gmail.com/My Drive/KeyStore/Harmony/qchatkeystore"  //密钥库文件，格式为.p12
+          "certpath": "qchatcsr.csr",
+          //调试或发布证书文件，格式为.cer
+          "storePassword": "teneasy-123",
+          //密钥库密码，以密文形式呈现
+          "keyAlias": "key0",
+          //密钥别名信息
+          "keyPassword": "teneasy-123",
+          //密钥密码，以密文形式呈现
+          "profile": "D:\\SigningConfig\\debug_hos.p7b",
+          //调试或发布证书 Profile文件，格式为.p7b
+          "signAlg": "SHA256withECDSA",
+          //密钥库signAlg参数
+          "storeFile": "qchatkeystore.p12"
+          //密钥库文件，格式为.p12
         }
       }
     ],
@@ -43,6 +52,18 @@
     {
       "name": "entry",
       "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "qichatsdk",
+      "srcPath": "./qichatsdk",
       "targets": [
         {
           "name": "default",
