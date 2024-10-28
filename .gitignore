@@ -11,3 +11,4 @@
 **/.test
 /.appanalyzer
 .arkui-x/android/local.properties
+/.arkui-x
