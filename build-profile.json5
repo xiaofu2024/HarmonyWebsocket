@@ -4,25 +4,15 @@
     "signingConfigs": [
       {
         "name": "default",
-        //标识签名方案的名称，用户可自定义
         "type": "HarmonyOS",
-        //标识 HarmonyOS 应用
-        //该方案的签名材料
         "material": {
+          "storePassword": "0000001BEF2F9156B127ABA91F594CAE507E95EB664E1989FCF322B66D1B1D1361DE7C5264D2F70C16CFBA",
           "certpath": "qchatcsr.csr",
-          //调试或发布证书文件，格式为.cer
-          "storePassword": "teneasy-123",
-          //密钥库密码，以密文形式呈现
           "keyAlias": "key0",
-          //密钥别名信息
-          "keyPassword": "teneasy-123",
-          //密钥密码，以密文形式呈现
-          "profile": "D:\\SigningConfig\\debug_hos.p7b",
-          //调试或发布证书 Profile文件，格式为.p7b
+          "keyPassword": "0000001B026CB3699BAF908B0855EC1A0EB1FAF81FC1F9AABDF597F65FDE151A09B041F4D3115208E827D9",
+          "profile": "release_hos.p7b",
           "signAlg": "SHA256withECDSA",
-          //密钥库signAlg参数
           "storeFile": "qchatkeystore.p12"
-          //密钥库文件，格式为.p12
         }
       }
     ],

@@ -10,5 +10,5 @@
 /.clang-tidy
 **/.test
 /.appanalyzer
-.arkui-x/android/local.properties
 /.arkui-x
+.arkui-x/android/local.properties
